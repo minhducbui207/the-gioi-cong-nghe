@@ -87,7 +87,7 @@
               <div class="linh-shelf-col highlight-col"><span class="linh-shelf-tag">PHỤ KIỆN</span><div class="linh-items-grid"><span>🎧</span><span>🔌</span></div></div>
               <div class="linh-shelf-col"><span class="linh-shelf-tag">CAO CẤP</span><div class="linh-items-grid"><span>⌚</span><span>📷</span></div></div>
             </div>
-            <div class="linh-floor-area floor1-area"><div class="character-flex-row"><div class="chibi-badge customer-badge-floating">🧑 Khách mua hàng</div><div class="chibi-badge bg-rose-600 text-white">👦 Nhân viên Trực Quầy</div></div></div>
+            <div class="linh-floor-area floor1-area"><div class="character-flex-row"><div class="chibi-badge customer-badge-floating">🧑 Khách mua hàng</div><div class="chibi-badge bg-emerald-600 text-white">👦 Nhân viên Trực Quầy</div></div></div>
           </div>
           <!-- TẦNG 2 - ĐÃ SỬA KHÔNG ĐÈ CHỮ -->
           <div id="floor2Content" class="floor-pane hidden">
@@ -130,11 +130,17 @@
         <button onclick="switchTab('upgrades', event)" id="tabBtn-upgrades" class="feature-icon-btn"><i class="fa-solid fa-rocket text-purple-400"></i><span>Nâng cấp</span></button>
         <button onclick="switchTab('branch', event)" id="tabBtn-branch" class="feature-icon-btn"><i class="fa-solid fa-network-wired text-orange-400"></i><span>Chi nhánh</span></button>
         <button onclick="switchTab('online', event)" id="tabBtn-online" class="feature-icon-btn"><i class="fa-solid fa-cart-shopping text-sky-400"></i><span>Bán Online</span></button>
+        <button onclick="switchTab('repair', event)" id="tabBtn-repair" class="feature-icon-btn"><i class="fa-solid fa-screwdriver-wrench text-orange-400"></i><span>Sửa chữa</span></button>
+        <button onclick="switchTab('warehouse', event)" id="tabBtn-warehouse" class="feature-icon-btn"><i class="fa-solid fa-boxes-stacked text-cyan-400"></i><span>Kho tổng</span></button>
       </div>
 
       <div id="tab-inventory" class="panel-box panel-pad-scrollable">
         <div class="flex flex-col gap-1.5 mb-1.5 shrink-0">
           <div class="flex justify-between items-center"><h3 class="section-title mb-0">Quản Lý Nhập Hàng Kho</h3><span class="badge-sub" id="warehouseStatusBadge">Kho hoạt động</span></div>
+         <div style="display:flex;gap:6px;margin-bottom:8px">
+<input id="productSearchInput" placeholder="🔍 Tìm tên máy, hãng... vd: A35, iPhone, S24" oninput="setProductSearch(this.value)" style="flex:1;padding:10px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px">
+        <button onclick="clearProductSearch()" style="padding:10px 14px;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#fff;font-weight:800">✕</button>
+</div>
           <div class="scroll-chips-container" id="categoryChipsContainer"></div>
           <div class="scroll-chips-container" id="brandChipsContainer"></div>
           <div class="scroll-chips-container" id="segmentChipsContainer"></div>
@@ -149,15 +155,37 @@
         <div id="staffListContainer" class="product-scroll-list-free space-y-2"></div>
       </div>
       
-      <div id="tab-online" class="hidden">
+            <div id="tab-online" class="panel-box panel-pad-scrollable hidden">
         <div style="background:#0f172a;border:1px solid #334155;border-radius:14px;padding:12px">
-        <div style="font-weight:900;color:#fff;font-size:16px">🖥️ Máy tính quầy - Web Bán Online</div>
-        <div style="font-size:12px;color:#94a3b8;margin:6px 0">Bật máy tính lên để khách Online đặt đơn, bấm Xác nhận để đóng gói, chờ giao là có tiền.</div>
-        <button id="onlineBtn" onclick="toggleOnlineSelling()" style="width:100%;padding:10px;border-radius:12px;background:#0ea5e9;color:#fff;font-weight:800">🛒 Bán Online: ĐANG TẮT</button>
-        <div id="onlineStatus" style="font-size:12px;text-align:center;color:#94a3b8;margin-top:6px">Chưa bán Online - Bật lên để bán cả khi mưa</div>
-        <div id="onlineOrdersList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
-  </div>
-</div>
+          <div style="font-weight:900;color:#fff;font-size:16px">🖥️ Máy tính quầy - Web Bán Online</div>
+          <div style="font-size:12px;color:#94a3b8;margin:6px 0">Bật máy tính lên để khách Online đặt đơn, bấm Xác nhận để đóng gói, chờ giao là có tiền.</div>
+          <button id="onlineBtn" onclick="toggleOnlineSelling()" style="width:100%;padding:10px;border-radius:12px;background:#0ea5e9;color:#fff;font-weight:800">🛒 Bán Online: ĐANG TẮT</button>
+          <div id="onlineStatus" style="font-size:12px;text-align:center;color:#94a3b8;margin-top:6px">Chưa bán Online - Bật lên để bán cả khi mưa</div>
+          <div id="onlineOrdersList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+      </div>
+
+      <div id="tab-repair" class="panel-box panel-pad-scrollable hidden">
+        <div class="flex justify-between items-center mb-1"><h3 class="section-title mb-0">🔧 Sửa chữa & Bảo hành - Tầng 2</h3><span class="badge-sub" id="repairCountLabel">0 đơn</span></div>
+      <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px;font-size:12px;color:#94a3b8">🚶 Khách mang máy tới sửa khi đang <b style="color:#fff">Mở bán</b>. Cần có <b style="color:#fff">Kỹ thuật viên</b> mới nhận được đơn. Đơn này là khách <b style="color:#fff">tới trực tiếp (Offline)</b>, không phải đơn Online.</div>
+        <div id="repairList" class="space-y-2"></div>
+      </div>
+
+      <div id="tab-warehouse" class="panel-box panel-pad-scrollable hidden">
+        <div class="flex justify-between items-center"><h3 class="section-title mb-0">📦 Kho tổng</h3><span class="badge-sub" id="warehouseTotalLabel">0 máy</span></div>
+        <div style="display:flex;gap:6px">
+          <input id="warehouseSearchInput" placeholder="🔍 Tìm trong kho... vd: A05s, iPhone" oninput="setWarehouseSearch(this.value)" style="flex:1;padding:10px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px">
+          <button onclick="clearWarehouseSearch()" style="padding:10px 14px;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#fff;font-weight:800">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="setWarehouseFilter('all')" class="filter-chip" id="whF-all">Tất cả</button>
+          <button onclick="setWarehouseFilter('het')" class="filter-chip" id="whF-het">🔴 Hết hàng</button>
+          <button onclick="setWarehouseFilter('saphet')" class="filter-chip" id="whF-saphet">🟡 Sắp hết &lt;3</button>
+          <button onclick="setWarehouseFilter('tonnhieu')" class="filter-chip" id="whF-tonnhieu">🟢 Tồn nhiều &gt;20</button>
+          <button onclick="setWarehouseFilter('caocap')" class="filter-chip" id="whF-caocap">💎 Cao cấp</button>
+        </div>
+        <div id="warehouseList" class="space-y-2"></div>
+      </div>
       
       <div id="tab-attendance" class="panel-box panel-pad-scrollable hidden">
         <div class="flex justify-between items-center mb-1"><h3 class="section-title mb-0">Sảnh Chấm Công</h3><span class="badge-sub text-emerald-300">POS Check-in</span></div>
@@ -166,10 +194,6 @@
 
       <div id="tab-startup" class="panel-box panel-pad-scrollable hidden">
         <div class="flex justify-between items-center mb-1"><h3 class="section-title mb-0">Chọn Địa Điểm Khởi Nghiệp</h3><span class="badge-sub text-cyan-300">63 Tỉnh Thành</span></div>
-        <div class="summary-box mb-1.5 text-[10px] leading-relaxed">
-          <div class="font-bold text-amber-300 mb-1" id="tierUpgradeBox">🏪 Cấp hiện tại: CỬA HÀNG</div>
-          <div id="tierUpgradeDesc">Lên Siêu thị cần: Ngày 15, Tiền 800Tr, Đánh giá 4.0 - Xem khung đặc biệt ở trên để lên cấp.</div>
-        </div>
         <div id="provincesScrollList" class="product-scroll-list-free space-y-2"></div>
       </div>
 
@@ -187,21 +211,66 @@
           <div class="flex justify-between"><span>Tiền thuê mặt bằng (Tháng):</span> <strong id="rentVal" class="text-rose-400">33 Tr đ</strong></div>
           <div class="flex justify-between"><span>Thuế môn bài & môi trường:</span> <strong class="text-rose-400">5.000.000 đ</strong></div>
           <div class="flex justify-between"><span>Tiền thuê đất chi nhánh / tháng:</span> <strong id="branchRentVal" class="text-rose-400">0 đ</strong></div>
-          <button onclick="payRentAndTaxes()" class="btn-emerald w-full py-2 text-xs font-bold rounded-【entity-lg¦canonical_name=LG】 cursor-pointer mt-2">💰 Đóng Tiền Thuê & Thuế Phí</button>
-        </div></div>
-      </div>
+   <button id="payTaxBtn" onclick="payRentAndTaxes()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#22c55e,#0ea5e9);color:#fff;font-weight:900;font-size:13px;border:none;cursor:pointer;margin-top:8px">💰 ĐÓNG TIỀN THUÊ & THUẾ PHÍ</button>
+                </div>
+        </div>
+        </div>
 
-      <div id="tab-summary" class="panel-box panel-pad-scrollable hidden">
-        <div class="flex justify-between items-center mb-1"><h3 class="section-title mb-0">Báo Cáo Lãi / Lỗ</h3></div>
-        <div class="space-y-2 text-xs product-scroll-list-free"><div class="summary-box space-y-2">
-          <div class="flex justify-between text-gray-300"><span>Doanh thu cửa hàng chính:</span> <strong id="sumRevDetail" class="text-emerald-400">0 đ</strong></div>
-          <div class="flex justify-between text-gray-300"><span>Doanh thu chi nhánh báo về:</span> <strong id="sumBranchRevDetail" class="text-cyan-400">0 đ</strong></div>
-          <div class="flex justify-between text-gray-300"><span>Chi phí nhập hàng (Giá vốn):</span> <strong id="sumCostDetail" class="text-rose-400">0 đ</strong></div>
-          <div class="flex justify-between text-gray-300"><span>Tổng quỹ lương:</span> <strong id="sumSalaryDetail" class="text-rose-400">0 đ</strong></div>
-          <div class="flex justify-between text-gray-300"><span>Tổng thuê & thuế phí:</span> <strong id="sumTaxDetail" class="text-rose-400">0 đ</strong></div>
-          <div class="border-t border-amber-800/60 pt-2 flex justify-between font-bold text-sm"><span>Lợi nhuận ròng:</span> <strong id="sumNetProfitDetail" class="text-amber-400">0 đ</strong></div>
-        </div></div>
-      </div>
+<div id="tab-summary" class="panel-box panel-pad-scrollable hidden">
+  <div class="flex justify-between items-center mb-1"><h3 class="section-title mb-0">Báo Cáo Lãi / Lỗ</h3><span class="badge-sub" id="sumDayLabel">Ngày 1</span></div>
+  <div style="display:flex;gap:6px">
+    <button id="sumModeDay" onclick="changeSummaryMode('day')" style="flex:1;padding:8px;border-radius:10px;background:#22c55e;color:#fff;font-weight:900;border:none">Theo ngày</button>
+    <button id="sumModeWeek" onclick="changeSummaryMode('week')" style="flex:1;padding:8px;border-radius:10px;background:#1e293b;color:#fff;font-weight:800;border:1px solid #334155">Theo tuần</button>
+    <button id="sumModeMonth" onclick="changeSummaryMode('month')" style="flex:1;padding:8px;border-radius:10px;background:#1e293b;color:#fff;font-weight:800;border:1px solid #334155">Theo tháng</button>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px">
+    <button onclick="changeSummaryDay(-1)" style="width:32px;height:32px;border-radius:99px;background:#1e293b;color:#fff;border:1px solid #334155">‹</button>
+    <b id="sumNavDayLabel" style="color:#fff">Ngày 1</b>
+    <button onclick="changeSummaryDay(1)" style="width:32px;height:32px;border-radius:99px;background:#1e293b;color:#fff;border:1px solid #334155">›</button>
+  </div>
+  <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px;font-size:12px;color:#fff">🌦️ Sự kiện: <b id="sumEventText">Trời âm u</b></div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;text-align:center"><b id="sumSoldVal" style="font-size:20px;color:#fff">0</b><div style="font-size:11px;color:#94a3b8">📱 thiết bị bán</div></div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;text-align:center"><b id="sumLeftVal" style="font-size:20px;color:#fff">0</b><div style="font-size:11px;color:#94a3b8">🚶 khách bỏ về</div></div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;text-align:center"><b id="sumRatingVal" style="font-size:20px;color:#fff">5.0★</b><div style="font-size:11px;color:#94a3b8">⭐ đánh giá</div></div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;text-align:center"><b id="sumBestVal" style="font-size:12px;color:#fff">Chưa có</b><div style="font-size:11px;color:#94a3b8">🔥 Bán chạy</div></div>
+  </div>
+  
+  <!-- BẢNG KÊ KIỂU ẢNH 1 -->
+  <div class="summary-box">
+    <div class="summary-break-title">📊 BẢNG KÊ THU CHI & LỜI LỖ</div>
+    <div class="summary-break-sub">Phân Tích Tiền Lời & Mức Hòa Vốn</div>
+    <div class="summary-break-head">
+      <span>Tổng thu (<span id="sumThuHead">0 đ</span>)</span>
+      <span id="sumLoiHead" class="text-emerald-400">Lãi: 0 đ</span>
+    </div>
+    <div class="summary-bar"><div id="sumBarNhap" class="summary-bar-seg bar-nhap"></div><div id="sumBarLuong" class="summary-bar-seg bar-luong"></div><div id="sumBarThue" class="summary-bar-seg bar-thue"></div><div id="sumBarLoi" class="summary-bar-seg bar-loi"></div></div>
+    <div class="summary-legend">
+      <span>🟠 Nhập hàng: <b id="sumPctNhap">0%</b></span>
+      <span>🔵 Lương: <b id="sumPctLuong">0%</b></span>
+      <span>🟣 Thuế / Phí: <b id="sumPctThue">0%</b></span>
+      <span>🟢 Lời: <b id="sumPctLoi">0%</b></span>
+    </div>
+    <div class="summary-cards-3">
+      <div class="summary-mini-card"><div>📦 Nhập hàng</div><b id="sumCardNhapPct">0%</b><span id="sumCardNhapVal">0 đ</span></div>
+      <div class="summary-mini-card"><div>👥 Tiền lương</div><b id="sumCardLuongPct">0%</b><span id="sumCardLuongVal">0 đ</span></div>
+      <div class="summary-mini-card"><div>🎯 Hòa vốn</div><b id="sumCardHoaVon">Chưa</b><span id="sumCardHoaVonVal">Cần bán thêm</span></div>
+    </div>
+    <div id="sumAdviceBox" class="summary-advice">Nhập hàng đúng số cần, đừng ôm vốn nhiều quá.</div>
+  </div>
+
+  <!-- LIỆT KÊ CHI TIẾT -->
+  <div class="summary-box space-y-2 text-xs">
+    <div class="summary-row"><span>Doanh thu cửa hàng chính:</span> <strong id="sumRevDetail" class="text-emerald-400">0 đ</strong></div>
+    <div class="summary-row"><span>Doanh thu chi nhánh báo về:</span> <strong id="sumBranchRevDetail" class="text-cyan-400">0 đ</strong></div>
+    <div class="summary-divider"></div>
+    <div class="summary-row"><span>Chi phí nhập hàng (Giá vốn):</span> <strong id="sumCostDetail" class="text-rose-400">0 đ</strong></div>
+    <div class="summary-row"><span>Tổng quỹ lương:</span> <strong id="sumSalaryDetail" class="text-rose-400">0 đ</strong></div>
+    <div class="summary-row"><span>Tổng thuê & thuế phí:</span> <strong id="sumTaxDetail" class="text-rose-400">0 đ</strong></div>
+    <div class="summary-divider"></div>
+    <div class="summary-row summary-row-total"><span>Lợi nhuận ròng:</span> <strong id="sumNetProfitDetail" class="text-amber-400">0 đ</strong></div>
+  </div>
+</div>
 
       <div id="tab-upgrades" class="panel-box panel-pad-scrollable hidden">
         <h3 class="section-title mb-2">Nâng Cấp Cơ Sở Vật Chất & Công Nghệ</h3>
@@ -230,19 +299,37 @@
 </div>
 
 <div id="summaryModal" class="modal-overlay hidden">
-  <div class="panel-box modal-box">
-    <h2 class="text-sm font-bold text-amber-200 mb-2 text-center">Báo cáo Tổng kết Ca</h2>
-    <div class="summary-box space-y-2 text-xs mb-3">
-      <div class="flex justify-between text-gray-300"><span>Doanh thu ca:</span> <span id="modalSumRevenue" class="font-bold text-emerald-400">+0 đ</span></div>
-      <div class="flex justify-between text-gray-300"><span>Trong đó chi nhánh báo về:</span> <span id="modalBranchRevenue" class="font-bold text-cyan-400">+0 đ</span></div>
-      <div class="flex justify-between text-gray-300"><span>Lương nhân sự theo ca:</span> <span id="modalSumStaffSalary" class="font-bold text-rose-400">-0 đ</span></div>
-      <div class="border-t border-amber-800/60 pt-2 flex justify-between text-xs font-bold text-white"><span>Lợi nhuận ròng ca:</span> <span id="modalSumNetProfit" class="text-amber-400">0 đ</span></div>
+  <div class="panel-box modal-box summary-frame">
+    <h2 class="text-sm font-bold text-amber-200 mb-2 text-center">Báo cáo Tổng kết Ca - Ngày <span id="modalDayLabel">1</span></h2>
+
+    <!-- LIỆT KÊ -->
+    <div class="summary-box summary-list space-y-2 text-xs mb-2">
+      <div class="summary-row"><span>📈 Thu - Doanh thu ca:</span> <span id="modalSumRevenue" class="font-bold text-emerald-400">+0 đ</span></div>
+      <div class="summary-row"><span>Trong đó chi nhánh báo về:</span> <span id="modalBranchRevenue" class="font-bold text-cyan-400">+0 đ</span></div>
+      <div class="summary-divider"></div>
+      <div class="summary-row"><span>📉 Chi - Lương nhân sự:</span> <span id="modalSumStaffSalary" class="font-bold text-rose-400">-0 đ</span></div>
+      <div class="summary-row"><span>📉 Chi - Thuế & phí đã đóng:</span> <span id="modalSumTaxPaid" class="font-bold text-rose-400">-0 đ</span></div>
+      <div class="summary-divider"></div>
+      <div class="summary-row summary-row-total"><span>💰 Lỗ / Lãi ca:</span> <span id="modalSumNetProfit" class="text-amber-400">0 đ</span></div>
     </div>
-    <button onclick="startNextShiftOrDay()" class="btn-gradient-amber w-full py-2.5 text-xs font-bold rounded-xl cursor-pointer">Bắt đầu ca tiếp theo / Ngày mới <i class="fa-solid fa-arrow-right ml-1"></i></button>
+
+    <!-- BẢNG KÊ THU CHI & LỜI LỖ -->
+    <div class="summary-box mb-3">
+      <div class="summary-break-title">📊 BẢNG KÊ THU CHI & LỜI LỖ</div>
+      <div class="summary-break-head"><span>Tổng thu (<span id="modalThuHead">0 đ</span>)</span><span id="modalLoiHead" class="text-emerald-400">Lãi: 0 đ</span></div>
+      <div class="summary-bar"><div id="modalBarNhap" class="summary-bar-seg bar-nhap"></div><div id="modalBarLuong" class="summary-bar-seg bar-luong"></div><div id="modalBarThue" class="summary-bar-seg bar-thue"></div><div id="modalBarLoi" class="summary-bar-seg bar-loi"></div></div>
+      <div class="summary-legend"><span>🟠 Nhập: <b id="modalPctNhap">0%</b></span><span>🔵 Lương: <b id="modalPctLuong">0%</b></span><span>🟣 Thuế: <b id="modalPctThue">0%</b></span><span>🟢 Lời: <b id="modalPctLoi">0%</b></span></div>
+      <div id="modalAdviceBox" class="summary-advice">Đóng ca rồi, mai bán tiếp.</div>
+    </div>
+
+    <div class="summary-btn-row">
+      <button onclick="openFullSummary()" class="btn-summary-full">📊 Tổng kết</button>
+      <button onclick="startNextShiftOrDay()" class="btn-summary-next">Ngày <span id="nextDayLabel">2</span> →</button>
+    </div>
   </div>
 </div>
 
-<!-- CÀI ĐẶT KIỂU ẢNH 1,2 - MÀU ẢNH 3 -->
+  <!-- CÀI ĐẶT KIỂU ẢNH 1,2 - MÀU ẢNH 3 -->
 <div id="settingsModal" class="modal-overlay hidden">
   <div class="panel-box modal-box settings-box">
     <h2 class="text-base font-bold text-amber-200 mb-3 text-center">⚙️ Cài đặt</h2>
@@ -269,17 +356,22 @@
   <div class="panel-box modal-box guide-book">
     <h2 class="text-base font-bold text-amber-200 text-center mb-1">📖 Hướng dẫn chơi game^^</h2>
     <p class="text-[10px] text-center text-amber-300 mb-2">Đọc xong phải nhớ nhé!</p>
-    <div class="guide-scroll">
+ <div class="guide-scroll">
       <h3>1. Mục tiêu</h3><p>Phát triển từ Cửa hàng lên Siêu thị rồi mở chuỗi Chi nhánh toàn quốc. Không có thắng / thua đâu nhe :v, chỉ có phát triển hoặc phá sản khi hết tiền thôi.</p>
-      <h3>2. Mở bán</h3><p>Bấm Mở bán để khách vào. Đóng ca để tổng kết và sang ngày mới.</p>
-      <h3>3. Nhập hàng - Quầy hàng</h3><p>Chọn ô số lượng rồi bấm Nhập X cái. Nhập Sỉ 10 giảm 10%. Nhập đúng số cần, nhập nhiều quá sẽ tồn vốn.</p>
-      <h3>4. Nhân sự</h3><p>Tuyển theo đúng vị trí: Kho là Kho, Shipper là giao hàng, Bảo vệ là bảo vệ, Lao công là lao công. Mỗi vị trí có lương và nhiệm vụ riêng.</p>
-      <h3>5. Nâng cấp</h3><p>Sở hữu → Mua thêm → Nâng cấp Lv. Max Lv100, trước ngày 30 giới hạn Lv30.</p>
-      <h3>6. MD Bank</h3><p>Vay cứu 500Tr mở từ ngày 4. Vay để xoay vốn, nhớ trả lãi.</p>
-      <h3>7. Lên Siêu thị</h3><p>Đủ Ngày 15, Tiền 800Tr, Đánh giá 4.0★ thì bấm khung ĐẶC BIỆT ở trên để lên Siêu thị, mở full 13 vị trí.</p>
-      <h3>8. Chi nhánh</h3><p>Mở chi nhánh → Thuê Leader → Nhận 100Tr hỗ trợ.Thuê leader mới có doanh thu báo về,doanh thu mà lỗ là đóng cửa chi nhánh,mở lại là phải thuê lại leader mới và không nhận được 100tr vì chi nhánh đã từng mở .</p>
-      <h3>9. Đánh giá</h3><p>Đánh giá chạy thật theo mua hàng, hết hàng, thiếu nhân viên, nâng cấp.</p>
-    </div>
+      <h3>2. Quầy hàng - Chỉ trưng bày</h3><p>Quầy chỉ để xem máy, bấm vào máy để xem chi tiết. Muốn nhập hàng thì vào Kho tổng.</p>
+      <h3>3. Kho tổng - Chỗ nhập hàng</h3><p>Chọn máy -> Chọn số lượng -> Bấm Nhập. Nhập Sỉ 10 giảm 10%. Nhập đúng số cần, nhập nhiều quá sẽ tồn vốn.</p>
+      <h3>4. Nhân sự</h3><p>Tuyển theo đúng vị trí: Kho là Kho, Shipper là giao hàng, Bảo vệ là bảo vệ, Lao công là lao công. Mỗi vị trí tối đa 2 người. Đang bán thì không tuyển được. Tinh thần dưới 30 thì bấm 💤 Nghỉ ngơi.</p>
+      <h3>5. Bán Online</h3><p>Bật máy tính quầy ở tab Bán Online. Khách đặt đơn -> Bấm Xác nhận + Đóng gói -> Chờ giao là có tiền + đánh giá. Trời mưa bán Online càng ngon.</p>
+      <h3>6. Sửa chữa - Khách mang máy tới</h3><p>Không có nút tự tạo đơn. Phải đang Mở bán + có Kỹ thuật viên thì khách mới mang máy tới. Đơn sửa là khách tới trực tiếp (Offline), khác đơn Online. Làm đủ 4 bước: Tiếp nhận -> Chẩn đoán + Báo giá -> Đang sửa -> Trả máy mới nhận tiền. Còn bảo hành thì miễn phí.</p>
+      <h3>7. Chấm công</h3><p>Mỗi ngày có 3 sự cố: đi muộn, quên chấm, giao trễ... Bấm Chấm công để xử lý. Không xử lý là bị trừ sao / trừ tiền.</p>
+      <h3>8. Nâng cấp</h3><p>Sở hữu → Mua thêm → Nâng cấp Lv. Max Lv100, trước ngày 30 giới hạn Lv30.</p>
+      <h3>9. Thuế & Phí</h3><p>Đóng 1 lần/ngày. Hôm nay đóng rồi thì mai mới đóng tiếp được.</p>
+      <h3>10. MD Bank</h3><p>Vay cứu 500Tr mở từ ngày 4. Vay để xoay vốn, nhớ trả lãi.</p>
+      <h3>11. Lên Siêu thị</h3><p>Đủ Ngày 15, Tiền 800Tr, Đánh giá 4.0★ thì bấm khung ĐẶC BIỆT ở trên để lên Siêu thị, mở full 13 vị trí.</p>
+      <h3>12. Chi nhánh</h3><p>Mở chi nhánh → Thuê Leader → Nhận 100Tr hỗ trợ. Thuê Leader mới có doanh thu báo về. Không có Leader là 0đ nhưng vẫn bị trừ tiền thuê đất.</p>
+      <h3>13. Đóng ca -> Tổng kết là cuối cùng</h3><p>Hết ca bấm Đóng ca -> Hiện bảng tổng kết ca -> Đọc kỹ Thu - Chi -> Rồi mới bấm Tổng kết HOẶC Ngày sau để sang ngày mới. Trong tab Tổng kết bấm Theo ngày / Tuần / Tháng để xem số máy bán, khách bỏ về, sự kiện hôm đó, bán chạy, bảng kê.</p>
+      <h3>14. Đánh giá</h3><p>Đánh giá chạy thật theo mua hàng, hết hàng, thiếu nhân viên, nâng cấp, VIP, Online.</p>
+    </div> 
     <button onclick="closeGuideModal()" class="btn-close-settings mt-2">Đã hiểu</button>
   </div>
 </div>
