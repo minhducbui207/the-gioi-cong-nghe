@@ -8,8 +8,7 @@ function playSound(type){
   else if(type==='upgrade'){o.type='sine';o.frequency.setValueAtTime(440,audioCtx.currentTime);o.frequency.setValueAtTime(554.37,audioCtx.currentTime+0.1);o.frequency.setValueAtTime(659.25,audioCtx.currentTime+0.2);g.gain.setValueAtTime(0.15,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.35);o.start();o.stop(audioCtx.currentTime+0.35);}
   else if(type==='error'){o.type='sawtooth';o.frequency.setValueAtTime(150,audioCtx.currentTime);o.frequency.linearRampToValueAtTime(100,audioCtx.currentTime+0.2);g.gain.setValueAtTime(0.2,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.2);o.start();o.stop(audioCtx.currentTime+0.2);}
 }
-function formatVND(a){ if(a>=1000000000) return (a/1000000000).toFixed(1)+' tỷ đ'; if(a>=1000000) return (a/1000000).toFixed(0)+' Tr đ'; return new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(a).replace('₫','đ'); }
-
+function formatVND(a){ if(a>=1000000000) return (a/1000000000).toFixed(1)+' tỷ đ'; if(a>=1000000) return (a/1000000).toFixed(a<10000000?1:0)+' Tr đ'; if(a>=1000) return Math.round(a/1000)+'K đ'; return a+' đ'; }
 // HỘP THOẠI TRONG GAME - THAY alert()
 function showGameDialog(msg, title, onOk){
   const m=document.getElementById('gameDialogModal'); document.getElementById('gameDialogTitle').innerText=title||'Thông báo'; document.getElementById('gameDialogMsg').innerText=msg;
@@ -90,6 +89,16 @@ const provincesList=[
  {name:"Vĩnh Phúc",desc:"Công nghiệp ô tô xe máy",priceM2:185000,advX:1.65},
  {name:"Yên Bái",desc:"Kinh tế Tây Bắc",priceM2:125000,advX:1.20}
 ];
+// Gán vùng: Bắc mở từ đầu, Trung + Nam khóa tới ngày 30
+(function(){
+  var mTrung=['Thanh Hóa','Nghệ An','Hà Tĩnh','Quảng Bình','Quảng Trị','Thừa Thiên Huế','Đà Nẵng','Quảng Nam','Quảng Ngãi','Bình Định','Phú Yên','Khánh Hòa','Ninh Thuận','Bình Thuận','Kon Tum','Gia Lai','Đắk Lắk','Đắk Nông','Lâm Đồng'];
+  var mNam=['TP. Hồ Chí Minh','Bà Rịa - Vũng Tàu','Bình Dương','Bình Phước','Tây Ninh','Long An','Đồng Nai','Tiền Giang','Bến Tre','Trà Vinh','Vĩnh Long','Đồng Tháp','An Giang','Kiên Giang','Cần Thơ','Hậu Giang','Sóc Trăng','Bạc Liêu','Cà Mau'];
+  provincesList.forEach(p=>{
+    if(mTrung.includes(p.name)) p.region='Trung';
+    else if(mNam.includes(p.name)) p.region='Nam';
+    else p.region='Bắc';
+  });
+})();
 const masterProductsList=[
 {id:'p1',category:'Laptop',brand:'Ap'+'ple',name:'MacBook Pro M3 14 inch',segment:'Cao cấp',cost:35000000,price:44000000,stock:0},
 {id:'p2',category:'Laptop',brand:'AS'+'US',name:'AS'+'US ROG Strix Gaming G16',segment:'Cao cấp',cost:28000000,price:35000000,stock:0},
@@ -129,82 +138,113 @@ const masterProductsList=[
 {id:'p36',category:'Gia dụng',brand:'Lo'+'cknLock',name:'Bình giữ nhiệt Lo'+'cknLock 1L',segment:'Phổ thông',cost:450000,price:680000,stock:0}
   ];
 
-// TU SINH - DIEN THOAI DUNG DANH SACH THAT
+// TU SINH CHUAN - TEN THAT THEO HANG, GIA THEO ROM
 (function(){
-  let phoneModels=[
-    {b:'Ap'+'ple', pre:'iPh'+'one', models:['11','11 Pro','11 Pro Max','12','12 mini','12 Pro','12 Pro Max','13','13 mini','13 Pro','13 Pro Max','14','14 Plus','14 Pro','14 Pro Max','15','15 Plus','15 Pro','15 Pro Max','16','16 Plus','16 Pro','16 Pro Max','16e','17','17 Pro','17 Pro Max','Air']},
-    {b:'Sa'+'msung', pre:'Ga'+'laxy', models:['A05','A05s','A06','A07','A14','A15','A16','A17','A24','A25','A26','A34','A35','A36','A54','A55','A56','S23','S23+','S23 Ultra','S24','S24+','S24 Ultra','S24 FE','S25','S25+','S25 Ultra','S25 FE','S26','S26+','S26 Ultra','Z Flip5','Z Flip6','Z Flip7','Z Fold5','Z Fold6','Z Fold7']},
-    {b:'Xi'+'aomi', pre:'', models:['12','12 Pro','13','13 Pro','13 Ultra','14','14 Pro','14 Ultra','15','15 Pro','15 Ultra','15T','15T Pro','17','17 Pro','17 Ultra']},
-    {b:'Re'+'dmi', pre:'', models:['9A','10','12','12C','13C','13','14C','A3','A5','Note 11','Note 12','Note 12 Pro','Note 13','Note 13 Pro','Note 13 Pro+','Note 14','Note 14 Pro','Note 14 Pro+','Note 15','Note 15 Pro']},
-    {b:'PO'+'CO', pre:'', models:['C40','C65','C75','M5','M6','M6 Pro','M7 Pro','X5 Pro','X6','X6 Pro','X7','X7 Pro','F5','F6','F6 Pro','F7','F7 Pro','F7 Ultra']},
-    {b:'OP'+'PO', pre:'', models:['A16','A17','A18','A38','A54 5G','A58','A60','A78','A73 5G','A74 5G','A79','A3','A5','Reno8','Reno8 T','Reno10','Reno11','Reno11 F','Reno12','Reno12 F','Reno13','Reno13 F','Reno14','Find X5 Pro','Find X6 Pro','Find X7 Ultra','Find X8','Find X8 Pro','Find X9','Find X9 Pro']},
-    {b:'Vi'+'vo', pre:'', models:['Y16','Y17s','Y18','Y19s','Y20','Y21','Y22s','Y27','Y28','Y29','Y36','Y38','V25','V27','V29','V30','V40','V50','X100','X100 Pro','X200','X200 Pro']},
-    {b:'Re'+'alme', pre:'', models:['C11','C21Y','C25','C30','C33','C35','C51','C53','C55','C61','C63','C65','C67','C75','9','10','11','12','12+','13+','14 Pro','GT Neo 5','GT 6','GT 7 Pro']},
-    {b:'HO'+'NOR', pre:'', models:['X7b','X8b','X9b','200']},
-    {b:'Hu'+'awei', pre:'', models:['Nova 9','Nova 11','Nova 12','Pura 70']}
-  ];
-  let storages=['128GB','256GB','512GB'];
-  let idNum=1000;
-  phoneModels.forEach(g=>{
-    g.models.forEach((md, idx)=>{
-      let storage=storages[idx%storages.length];
-      let fullName=(g.pre?g.pre+' ':'')+md+' '+storage;
+  function romAdd(base, rom, firstRom){
+  if(rom===firstRom) return 0;
+  if(rom==='256GB') return Math.round(base*0.15/1000)*1000;
+  if(rom==='512GB' && firstRom==='128GB') return Math.round(base*0.35/1000)*1000;
+  if(rom==='512GB' && firstRom==='256GB') return Math.round(base*0.18/1000)*1000;
+  if(rom==='1TB' && firstRom==='256GB') return Math.round(base*0.35/1000)*1000;
+  if(rom==='1TB') return Math.round(base*0.60/1000)*1000;
+  return 0;
+}
+  function segByRom(baseSeg, rom){ if(rom==='512GB'||rom==='1TB') return 'Cao cấp'; return baseSeg; }
+  var idNum=1000;
+  function addPhone(brand, model, baseSeg, baseCost, roms){
+    roms.forEach(function(rom){
+      var fullName=model+' '+rom;
       if(masterProductsList.find(p=>p.name===fullName)) return;
-      let isCaoCap = md.indexOf('Pro Max')>=0 || md.indexOf('Ultra')>=0 || md.indexOf('Fold')>=0 || md.indexOf('Flip')>=0 || md.indexOf('Pro')>=0;
-      let isPhoThong = md.indexOf('A0')>=0 || md[0]==='C' || md.indexOf('9A')>=0 || md.indexOf('Y1')>=0 || md.indexOf('A1')>=0;
-let seg=isCaoCap?'Cao cấp':(isPhoThong?'Phổ thông':'Trung cấp');
-
-let baseCost = isCaoCap ? 18000000 + Math.random()*12000000 : isPhoThong ? 3500000 + Math.random()*1500000 : 7000000 + Math.random()*4000000;
-let storageAdd=storage==='256GB'?1200000:(storage==='512GB'?3500000:0);
-      let cost=Math.round((baseCost+storageAdd)/1000)*1000;
-      let price=Math.round(cost*1.28/1000)*1000;
-      masterProductsList.push({id:'auto'+idNum, category:'Điện thoại', brand:g.b, name:fullName, segment:seg, cost:cost, price:price, stock:0});
-      idNum++;
+      var cost=Math.round((baseCost+romAdd(baseCost, rom, roms[0]))/1000)*1000;
+      var price=Math.round(cost*1.28/1000)*1000;
+      masterProductsList.push({id:'auto'+(idNum++), category:'Điện thoại', brand:brand, name:fullName, segment:segByRom(baseSeg, rom), cost:cost, price:price, stock:0});
+    });
+  }
+addPhone('Ap'+'ple','iPh'+'one 11','Phổ thông',7900000,['128GB']);
+addPhone('Ap'+'ple','iPh'+'one 13','Trung cấp',12900000,['128GB','256GB']);
+addPhone('Ap'+'ple','iPh'+'one 14','Trung cấp',14500000,['128GB','256GB']);
+addPhone('Ap'+'ple','iPh'+'one 15','Trung cấp',16700000,['128GB','256GB','512GB']);
+addPhone('Ap'+'ple','iPh'+'one 15 Pro','Cao cấp',20900000,['128GB','256GB','512GB']);
+addPhone('Ap'+'ple','iPh'+'one 15 Pro Max','Cao cấp',26500000,['256GB','512GB','1TB']);
+addPhone('Ap'+'ple','iPh'+'one 16','Cao cấp',19500000,['128GB','256GB','512GB']);
+addPhone('Ap'+'ple','iPh'+'one 16 Pro Max','Cao cấp',29500000,['256GB','512GB','1TB']);
+addPhone('Sa'+'msung','Ga'+'laxy A05','Phổ thông',2500000,['128GB']);
+addPhone('Sa'+'msung','Ga'+'laxy A05s','Phổ thông',3500000,['128GB']);
+addPhone('Sa'+'msung','Ga'+'laxy A15','Phổ thông',4500000,['128GB','256GB']);
+addPhone('Sa'+'msung','Ga'+'laxy A35','Trung cấp',8290000,['128GB','256GB']);
+addPhone('Sa'+'msung','Ga'+'laxy A55','Trung cấp',9290000,['128GB','256GB']);
+addPhone('Sa'+'msung','Ga'+'laxy S24','Cao cấp',17900000,['256GB','512GB']);
+addPhone('Sa'+'msung','Ga'+'laxy S24 Ultra','Cao cấp',19950000,['256GB','512GB']);
+addPhone('Sa'+'msung','Ga'+'laxy S25 Ultra','Cao cấp',24900000,['256GB','512GB','1TB']);
+addPhone('Sa'+'msung','Ga'+'laxy Z Flip6','Cao cấp',21900000,['256GB','512GB']);
+addPhone('Sa'+'msung','Ga'+'laxy Z Fold6','Cao cấp',33900000,['256GB','512GB','1TB']);
+addPhone('Xi'+'aomi','Xi'+'aomi 14','Cao cấp',17900000,['256GB','512GB']);
+addPhone('Xi'+'aomi','Xi'+'aomi 15','Cao cấp',21900000,['256GB','512GB']);
+addPhone('Re'+'dmi','Re'+'dmi Note 13','Trung cấp',4900000,['128GB','256GB']);
+addPhone('Re'+'dmi','Re'+'dmi Note 13 Pro','Trung cấp',6900000,['256GB','512GB']);
+addPhone('Re'+'dmi','Re'+'dmi 13C','Phổ thông',3200000,['128GB']);
+addPhone('OP'+'PO','OP'+'PO A18','Phổ thông',3500000,['128GB']);
+addPhone('OP'+'PO','OP'+'PO Reno11','Trung cấp',9900000,['256GB','512GB']);
+addPhone('OP'+'PO','OP'+'PO Find X8','Cao cấp',20900000,['256GB','512GB']);
+addPhone('Vi'+'vo','Vi'+'vo Y18','Phổ thông',3400000,['128GB']);
+addPhone('Vi'+'vo','Vi'+'vo V30','Trung cấp',11900000,['256GB','512GB']);
+addPhone('Vi'+'vo','Vi'+'vo X100 Pro','Cao cấp',21900000,['256GB','512GB']);
+addPhone('Re'+'alme','Re'+'alme C55','Phổ thông',4200000,['128GB','256GB']);
+addPhone('Re'+'alme','Re'+'alme 13 Pro','Trung cấp',8500000,['256GB','512GB']);
+addPhone('Re'+'alme','Re'+'alme GT 6','Cao cấp',15500000,['256GB','512GB']);
+  var realData=[
+    ['Laptop','Ap'+'ple',['Mac'+'Book Air M2 13 inch','Mac'+'Book Pro M3 14 inch']],
+    ['Laptop','AS'+'US',['ROG Strix G16','VivoBook 15']],
+    ['Laptop','De'+'ll',['XPS 13','Inspiron 15']],
+    ['Laptop','H'+'P',['Pavilion 15','Victus 16']],
+    ['Laptop','Le'+'novo',['ThinkPad X1 Carbon','IdeaPad Slim 3']],
+    ['Laptop','Ac'+'er',['Aspire 5','Nitro 5']],
+    ['Laptop','MS'+'I',['Katana 15','Modern 14']],
+    ['Máy tính bảng','Ap'+'ple',['iPad Air M2 11 inch','iPad 10 10.9 inch']],
+    ['Máy tính bảng','Sa'+'msung',['Tab S9 FE','Tab A9']],
+    ['Máy tính bảng','Le'+'novo',['Tab P12','Tab M10']],
+    ['Máy tính bảng','Xi'+'aomi',['Pad 6','Pad SE']],
+    ['Đồng hồ','Ap'+'ple',['Watch Series 9','Watch SE 2']],
+    ['Đồng hồ','Sa'+'msung',['Watch 6 Classic','Watch FE']],
+    ['Đồng hồ','Hu'+'awei',['Watch GT 4','Watch Fit 3']],
+    ['Đồng hồ','Xi'+'aomi',['Watch S1','Band 8']],
+    ['Tai nghe','So'+'ny',['WH-1000XM5','WF-1000XM5']],
+    ['Tai nghe','Ap'+'ple',['AirPods Pro 2','AirPods 4']],
+    ['Tai nghe','J'+'BL',['Tune 770NC','Tune Beam']],
+    ['Tai nghe','Sa'+'msung',['Buds 2 Pro','Buds FE']],
+    ['Loa','J'+'BL',['Flip 6','Charge 5']],
+    ['Loa','So'+'ny',['SRS-XE300','SRS-XB43']],
+    ['Loa','Ma'+'rshall',['Emberton II','Stanmore III']],
+    ['Loa','Xi'+'aomi',['Smart Speaker','Sound Outdoor']],
+    ['Phụ kiện','An'+'ker',['Sạc nhanh 65W GaN','Sạc dự phòng 20000mAh']],
+    ['Phụ kiện','Logi'+'tech',['Chuột MX Master 3S','Bàn phím MX Keys']],
+    ['Phụ kiện','Be'+'lkin',['Cáp USB-C 100W','Sạc MagSafe']],
+    ['Phụ kiện','Ba'+'seus',['Sạc dự phòng 20000mAh','Cáp 100W']],
+    ['TV','Sa'+'msung',['QLED 55 inch 4K','Crystal UHD 55 inch']],
+    ['TV','L'+'G',['OLED C3 55 inch','QNED 55 inch']],
+    ['TV','So'+'ny',['Bravia 55 inch 4K','X90K 65 inch']],
+    ['TV','TC'+'L',['QLED 55 inch 4K','QLED 65 inch 4K']],
+    ['Điện lạnh','Sa'+'msung',['Tủ lạnh 380L Inverter','Máy giặt 10kg']],
+    ['Điện lạnh','L'+'G',['Máy giặt 10kg Inverter','Tủ lạnh 300L']],
+    ['Điện lạnh','Dai'+'kin',['Điều hòa 12000BTU Inverter','Điều hòa 9000BTU']],
+    ['Điện lạnh','Pa'+'nasonic',['Tủ lạnh 300L Inverter','Máy giặt 9kg']],
+    ['Gia dụng','Xi'+'aomi',['Robot hút bụi X10','Máy lọc không khí']],
+    ['Gia dụng','Phi'+'lips',['Nồi chiên không dầu 7L','Bàn ủi hơi nước']],
+    ['Gia dụng','Elec'+'trolux',['Máy hút bụi 1600W','Máy rửa chén']],
+    ['Gia dụng','Lo'+'cknLock',['Bình giữ nhiệt 1L','Hộp đựng thực phẩm']]
+  ];
+  var basePrice={'Laptop':16000000,'Máy tính bảng':8000000,'Đồng hồ':5000000,'Tai nghe':2500000,'Loa':3000000,'Phụ kiện':800000,'TV':13000000,'Điện lạnh':9000000,'Gia dụng':2000000};
+  realData.forEach(function(row){
+    var cat=row[0]; var brand=row[1]; var names=row[2];
+    names.forEach(function(nm){
+      if(masterProductsList.find(p=>p.name===nm)) return;
+      var isHigh=/Pro Max|Ultra|OLED|ROG|ThinkPad|Pro M3|XPS/.test(nm);
+      var cost=Math.round((basePrice[cat]*(isHigh?1.3:0.9))/1000)*1000;
+      var price=Math.round(cost*1.32/1000)*1000;
+      masterProductsList.push({id:'auto'+(idNum++), category:cat, brand:brand, name:nm, segment:isHigh?'Cao cấp':'Trung cấp', cost:cost, price:price, stock:0});
     });
   });
-  let brandPool={
-    'Laptop':[['Ap','ple'],['AS','US'],['De','ll'],['H','P'],['Le','novo'],['Ac','er'],['MS','I']],
-    'Máy tính bảng':[['Ap','ple'],['Sa','msung'],['Le','novo'],['Xi','aomi'],['Hu','awei']],
-    'Đồng hồ':[['Ap','ple'],['Sa','msung'],['Hu','awei'],['Xi','aomi'],['Am','azfit']],
-    'Tai nghe':[['So','ny'],['Ap','ple'],['J','BL'],['Sa','msung'],['An','ker']],
-    'Loa':[['J','BL'],['So','ny'],['Ma','rshall'],['H','arman Kardon'],['Xi','aomi']],
-    'Phụ kiện':[['An','ker'],['Logi','tech'],['Be','lkin'],['Ba','seus'],['Ug','reen']],
-    'TV':[['Sa','msung'],['L','G'],['TC','L'],['So','ny'],['Xi','aomi']],
-    'Điện lạnh':[['Sa','msung'],['L','G'],['Dai','kin'],['Pa','nasonic'],['To','shiba']],
-    'Gia dụng':[['Xi','aomi'],['Phi','lips'],['Elec','trolux'],['Lo','cknLock'],['Pa','nasonic']]
-  };
-  let cats=['Laptop','Máy tính bảng','Đồng hồ','Tai nghe','Loa','Phụ kiện','TV','Điện lạnh','Gia dụng'];
-  let realNames={
-    'Laptop':['Air M2','Inspiron 15','Victus 16','IdeaPad Slim 3','ThinkPad E14','VivoBook 15','Swift 3','Katana 15','MacBook Air M3','ZenBook 14','Aspire 7','Legion 5','Surface Laptop 5','Pavilion Aero','ROG Strix G15'],
-    'Máy tính bảng':['Tab A9','Tab S9','Pad 6','Pad Air','Tab P11','MatePad 11','Tab M10','iPad 10','iPad Mini 6','Tab A8','Pad SE','Tab S6 Lite','MatePad SE','Tab P12','iPad Air 5'],
-    'Đồng hồ':['Watch 6','Watch GT 4','Watch Series 9','Watch SE 2','Fit 3','Watch 5 Pro','Amazfit GTR 4','Watch Fit 2','Watch 4 Classic','Versa 4','Watch Ultra 2','Watch 6 Classic','Band 8','Watch S1','GTS 4'],
-    'Tai nghe':['WH-CH720N','AirPods 4','Tune 510BT','Buds 2 Pro','FreeBuds SE 3','WF-1000XM5','AirPods Max','Buds FE','Tune Beam','WH-1000XM4','Ear 2','Enco Buds 2','Buds Live','Tune 230NC','AirPods Pro 2'],
-    'Loa':['Flip 6','SRS-XE300','Emberton II','Charge 5','PartyBox 110','XB43','Go 3','Aura Studio 3','Link Portable','SRS-XB33','Boom 2','W-King D9','Stanmore III','JBL Pulse 5','SRS-RA3000'],
-    'Phụ kiện':['Sạc 65W GaN','MX Master 3S','MX Keys','Cáp USB-C 100W','Sạc dự phòng 20000mAh','Chuột G Pro','Bàn phím K380','Hub USB-C 7in1','Ốp lưng MagSafe','Dán cường lực','Giá đỡ laptop','Balo laptop','Tai nghe dây','Sạc MagSafe','Ổ cắm 6 chấu'],
-    'TV':['QLED Q70C 55','OLED C3 55','QLED 65 4K','Bravia 55 4K','Crystal UHD 55','OLED A2 55','QNED 55','The Frame 55','Google TV 55','QLED Q60C 65','OLED B3 55','UHD 4K 50','QLED 75 4K','Bravia X90K 65','OLED G3 65'],
-    'Điện lạnh':['Tủ lạnh 380L Inverter','Máy giặt 10kg Inverter','Điều hòa 12000BTU','Tủ lạnh 300L Inverter','Máy giặt 9kg','Điều hòa 9000BTU','Tủ đông 200L','Máy sấy 8kg','Tủ lạnh Side by Side','Máy giặt sấy 10kg','Điều hòa 18000BTU','Tủ lạnh 2 cánh','Máy giặt 12kg','Tủ mát 300L','Điều hòa âm trần'],
-    'Gia dụng':['Robot X10','Nồi chiên 7L','Máy hút bụi 1600W','Bình giữ nhiệt 1L','Máy xay sinh tố','Nồi cơm 1.8L','Quạt không cánh','Máy lọc không khí','Bàn ủi hơi nước','Máy pha cà phê','Nồi áp suất','Máy rửa chén','Lò vi sóng 30L','Máy sấy tóc','Ấm siêu tốc']
-  };
-  let basePrice={'Laptop':16000000,'Máy tính bảng':8000000,'Đồng hồ':5000000,'Tai nghe':2500000,'Loa':3000000,'Phụ kiện':800000,'TV':13000000,'Điện lạnh':9000000,'Gia dụng':2000000};
-  cats.forEach(cat=>{
-    let cur=masterProductsList.filter(p=>p.category===cat).length;
-    let need=50-cur;
-    for(let i=0;i<need;i++){
-      let bp=brandPool[cat][(cur+i)%brandPool[cat].length];
-      let brand=bp[0]+bp[1];
-      let idx=cur+i+1;
-      let seg=idx%3===0?'Cao cấp':(idx%3===1?'Trung cấp':'Phổ thông');
-      let cost=Math.round((basePrice[cat]*(0.7+(idx%5)*0.15+Math.random()*0.2))/1000)*1000;
-      let price=Math.round(cost*1.32/1000)*1000;
-      let pool=realNames[cat];
-      let tenThat=pool[(cur+i)%pool.length];
-      let suffix=cat==='TV'?' '+(43+idx%5*5)+' inch 4K':(cat==='Laptop'?' '+(13+idx%4)+' inch':'');
-      let name=tenThat+suffix;
-      masterProductsList.push({id:'auto'+idNum, category:cat, brand:brand, name:brand+' '+name, segment:seg, cost:cost, price:price, stock:0});
-      idNum++;
-    }
-  });
-})();
+})();  
       const staffRolesDefinition=[
  {key:'director',name:'Giám đốc siêu thị',salary:18000000,count:0, tier:'supermarket'},
  {key:'biz_manager',name:'Quản lý kinh doanh',salary:12000000,count:0, tier:'supermarket'},
@@ -244,25 +284,45 @@ const vipDialogues=[
  {customer:"Sinh viên Minh",text:"Tôi muốn mua tai nghe chống ồn tầm 7-8 triệu để học bài!",options:[
    {label:"Tư vấn Sony WH-1000XM5 đúng giá",correct:true,reward:8200000,ratingStars:5,msg:"Sinh viên Minh đánh giá 5 sao!"},
    {label:"Tư vấn tai nghe giá cao không phù hợp",correct:false,reward:3000000,ratingStars:1,msg:"Khách chưa hài lòng và rời đi."}
+ ]},
+   {customer:"Sinh viên Minh",text:"Tôi muốn mua tai nghe chống ồn tầm 7-8 triệu để học bài!",options:[
+   {label:"Tư vấn 【entity-Sony¦canonical_name=Sony】 WH-1000XM5 đúng giá",correct:true,reward:8200000,ratingStars:5,msg:"Sinh viên Minh đánh giá 5 sao!"},
+   {label:"Tư vấn tai nghe giá cao không phù hợp",correct:false,reward:3000000,ratingStars:1,msg:"Khách chưa hài lòng và rời đi."}
+ ]},
+ {customer:"Chị Lan",text:"Tôi cần mua 1 điện thoại tầm 8 triệu cho con đi học, pin trâu 1 chút!",options:[
+   {label:"Tư vấn Samsung A35 pin trâu giá hợp lý",correct:true,reward:8500000,ratingStars:5,msg:"Chị Lan chốt ngay 1 máy!"},
+   {label:"Tư vấn máy 20 triệu cao cấp",correct:false,reward:0,ratingStars:1,msg:"Chị Lan chê đắt và bỏ về."}
+ ]},
+ {customer:"Anh Tuấn",text:"Laptop tôi bị sập nguồn, sửa gấp được không? Tôi cần lấy trong hôm nay.",options:[
+   {label:"Nhận sửa gấp ở Tầng 2, lấy trong ngày",correct:true,reward:1500000,ratingStars:5,msg:"Anh Tuấn hài lòng, đánh giá 5 sao!"},
+   {label:"Bảo để lại 3 ngày",correct:false,reward:0,ratingStars:2,msg:"Khách vội nên bỏ đi."}
  ]}
 ];
 
 let gameState={
  day:1,cash:500000000,dailyRevenue:0,totalRevenue:0,totalCostSpent:0,totalSalaryPaid:0,totalTaxPaid:0,
  rating:5.0,ratingCount:0,ratingTotal:0,branchRevenueTotal:0,branchExpenseTotal:0,branchDailyRevenue:0,
- currentHour:8, gameMinute:0, isShopOpen:false,currentFloor:1,selectedProvince:provincesList[1],storeAreaM2:150,
+ currentHour:8, gameMinute:0, lastTaxPaidDay:0, isShopOpen:false,currentFloor:1,selectedProvince:null,storeAreaM2:150,
  selectedCategory:'Điện thoại',selectedBrand:'all',selectedSegment:'all',
  tier:'store', branches:[], staff:staffRolesDefinition,staffMembers:[], products:masterProductsList,upgrades:upgradesDefinition,loansActive:[],
- guideMode:'off', guideEnabled:false, isOnline:false, onlineRevenue:0, onlineOrders:[],attendanceResolved:[], sellTimeOption:4, guideStep:0
+ guideMode:'off', guideEnabled:false, isOnline:false, onlineRevenue:0, onlineOrders:[],attendanceResolved:[], sellTimeOption:4, guideStep:0,
+ dailySold:0, dailyLeft:0, dailyHistory:[], summaryMode:'day', summaryDay:1, summaryBest:'Chưa có'
 };
 let gameLoopInterval=null; let qtyMap={};
 let guideSteps=[
-{target:'tabBtn-inventory', text:'B1-Quầy hàng'},
-{target:'tabBtn-staff', text:'B2-Nhân viên'},
-{target:'tabBtn-upgrades', text:'B3-Nâng cấp'},
-{target:'tabBtn-attendance', text:'B4-Chấm công'},
-{target:'tabBtn-inventory', text:'B5-Quầy hàng'},
-{target:'openShopBtn', text:'B6-Mở bán'}
+{target:'tabBtn-inventory', text:'B1-Quầy hàng: Bấm vào máy để xem chi tiết. Muốn nhập hàng thì vào Kho tổng. Nhập Sỉ 10 giảm 10%.'},
+{target:'tabBtn-warehouse', text:'B2-Kho tổng: Đây mới là chỗ nhập hàng. Chọn máy -> Chọn số lượng -> Bấm Nhập. Nhập đúng số cần, nhập nhiều quá sẽ tồn vốn.'},
+{target:'tabBtn-staff', text:'B3-Nhân viên: Tuyển theo vị trí. Mỗi vị trí tối đa 2 người. Đang bán thì không tuyển được. Tinh thần dưới 30 thì bấm Nghỉ ngơi.'},
+{target:'tabBtn-online', text:'B4-Bán Online: Bật máy tính quầy lên. Có đơn thì bấm Xác nhận + Đóng gói, chờ giao là có tiền. Trời mưa bán Online càng ngon.'},
+{target:'tabBtn-repair', text:'B5-Sửa chữa: Không cần bấm tạo đơn. Đang Mở bán + có Kỹ thuật viên thì khách tự mang máy tới. Đơn này là khách tới trực tiếp (Offline), không phải đơn Online. Làm đủ 4 bước tới Trả máy mới có tiền.'},
+{target:'tabBtn-attendance', text:'B6-Chấm công: Xử lý 3 sự cố mỗi ngày. Chấm xong mới không bị trừ sao.'},
+{target:'tabBtn-upgrades', text:'B7-Nâng cấp: Sở hữu -> Mua thêm -> Nâng Lv. Trước ngày 30 max Lv30.'},
+{target:'tabBtn-finance', text:'B8-Thuế & Phí: Đóng 1 lần/ngày. Đóng xong mai mới đóng tiếp được.'},
+{target:'tabBtn-branch', text:'B9-Chi nhánh: Mở chi nhánh -> Thuê Leader mới có doanh thu. Không Leader là 0đ.'},
+{target:'tabBtn-bank', text:'B10-MD Bank: Vay cứu 500Tr mở từ ngày 4. Vay để xoay vốn, nhớ trả lãi.'},
+{target:'openShopBtn', text:'B11-Mở bán: Mở bán để khách vào. Khách VIP sẽ vào rải rác, nhớ trả lời tư vấn.'},
+{target:'closeShopBtn', text:'B12-Đóng ca: Hết ca bấm Đóng ca. Hiện bảng tổng kết ca, đừng bấm vội, đọc kỹ Thu - Chi đã.'},
+{target:'tabBtn-summary', text:'B13-Tổng kết: Đây là bước cuối. Xem Theo ngày / Tuần / Tháng, số máy bán, khách bỏ về, sự kiện, bảng kê Thu Chi & Lời Lỗ. Xem xong mới sang ngày mới.'}
 ];
 function getTickMs(){
   if(gameState.sellTimeOption===6) return 80000;
@@ -270,7 +330,7 @@ function getTickMs(){
   return 40000;
 }
 function renderBankLoans(){
-  const container=document.getElementById('bankLoansList'); if(!container) return;
+ const container=document.getElementById('bankLoansContainer'); if(!container) return;
   container.innerHTML='';
   bankLoansList.forEach(loan=>{
     let card=document.createElement('div'); card.className='control-card';
@@ -359,6 +419,16 @@ function clearGuideHighlight_cu(){ document.querySelectorAll('.guide-highlight')
 
 function toggleOpenShop(){
   gameState.isShopOpen=!gameState.isShopOpen; updateOpenShopButtonState();if(gameState.isShopOpen) onGuideButtonClicked('openShopBtn');
+  if(!gameState.selectedProvince && !gameState.isShopOpen){
+    // Vừa bấm mở mà chưa chọn tỉnh -> không cho mở
+  }
+  if(!gameState.selectedProvince){
+    gameState.isShopOpen=false;
+    showGameDialog('Chưa chọn địa điểm khởi nghiệp! Vào tab Khởi Nghiệp chọn 1 tỉnh miền Bắc trước đã, rồi mới mở bán được.', 'Chưa chọn địa điểm');
+    switchTab('startup', null);
+    updateOpenShopButtonState();
+    return;
+  }
   if(gameState.isShopOpen){ logEvent("Cửa hàng đã mở bán!"); startGameLoop(); triggerRandomVipCustomer();
   if(gameState.guideEnabled) showGuideStep(1); }
   else { logEvent("Cửa hàng đã đóng cửa."); stopGameLoop(); 
@@ -387,6 +457,13 @@ function startGameLoop(){
     }
     updateUI();
     simulateBranchIncome();
+     // SỬA CHỮA: khách mang máy tới rải rác trong ca, không tự đẻ đơn
+    if(Math.random() < 0.08) spawnRepairCustomer();
+    // VIP vào thêm trong ca, không chỉ 1 người lúc mở bán
+    var actBox = document.getElementById('dialogueActionsContainer');
+    if(actBox && actBox.classList.contains('hidden') && Math.random() < 0.12){
+      triggerRandomVipCustomer();
+    }
     let staffCountB21 = gameState.staff.reduce((s,x)=>s+x.count,0);
     let avgSpirit=gameState.staffMembers.length>0 ? gameState.staffMembers.reduce((s,x)=>s+x.spirit,0)/gameState.staffMembers.length : 100;
     let spiritMul=avgSpirit<30?0.7:(avgSpirit<70?0.85:1);
@@ -401,17 +478,20 @@ function startGameLoop(){
       }
     }
     if(Math.random()<rateB21){
-    let coHang=gameState.products.filter(x=>x.stock>0);
-      if(coHang.length===0){
+    let coHang=gameState.products.filter(x=>x.stock>0 && !(x.segment==='Cao cấp'&&gameState.day<30));
+    if(coHang.length===0){
+    gameState.dailyLeft=(gameState.dailyLeft||0)+1;
     logEvent('Khách vào xem nhưng hết hàng:((');
       } else {
         let p=coHang[Math.floor(Math.random()*coHang.length)];
         if(p && p.stock>0){
           p.stock--;
-          let earned=Math.round(p.price*gameState.selectedProvince.advX);
+          let earned=Math.round(p.price*(gameState.selectedProvince ? gameState.selectedProvince.advX : 1));
           gameState.cash+=earned;
           gameState.dailyRevenue+=earned;
           gameState.totalRevenue+=earned;
+          gameState.dailySold=(gameState.dailySold||0)+1;
+          gameState.summaryBest=p.name;
           playSound('cash');
                     // Tinh thần: 1 nhân viên ngẫu nhiên bị mệt khi bán
           if(gameState.staffMembers.length>0){
@@ -477,7 +557,7 @@ function upgradeToSupermarket(){
     showGameDialog('Chúc mừng! Bạn đã lên Siêu thị.', 'Lên Siêu thị');
   });
 }
-function openBranch(provinceName){
+ function openBranch(provinceName){
   let prov=provincesList.find(p=>p.name===provinceName);
   if(gameState.branches.find(b=>b.provinceName===provinceName)){ showGameDialog('Chi nhánh ở tỉnh này đã mở rồi.', 'Chi nhánh'); return; }
   showConfirmDialog('Mở Chi nhánh trực thuộc tại '+provinceName+'?\n- Sau khi mở, cần Thuê Leader thì chi nhánh mới có doanh thu báo về\n- Nhận ngay 100Tr hỗ trợ mở chi nhánh\n- Thuế đất hàng tháng: '+formatVND(prov.priceM2*80), 'Mở chi nhánh', ()=>{
@@ -527,8 +607,6 @@ function simulateBranchIncome(){
     if(gameState.weather==='nang') rev = rev * 1.1;
     rev = Math.round(rev);
     gameState.cash += rev;
-    rev = Math.round(rev);
-    gameState.cash += rev;
     b.revenueTotal = (b.revenueTotal||0) + rev;
     b.expenseTotal = (b.expenseTotal||0) + expense;
     gameState.branchRevenueTotal = (gameState.branchRevenueTotal||0) + rev;
@@ -565,10 +643,24 @@ function renderBranches(){
     card.innerHTML='<div><div class="card-title">'+b.provinceName+' - Đang hoạt động</div><div class="card-desc">'+(b.leader?'Leader '+b.leaderName+' đang quản lý chi nhánh '+b.provinceName:'Chưa có Leader - Chi nhánh đang trống, cần thuê Leader')+' | Doanh thu đã báo về: '+formatVND(b.revenueTotal)+' | Chi phí: '+formatVND(b.expenseTotal)+'</div></div><div class="import-actions">'+(b.leader?'<span style="font-size:11px;color:#6ee7b7;font-weight:bold">Đang quản lý</span>':'<button onclick="hireBranchLeader(\''+b.provinceName+'\')" class="btn-branch-hire">Thuê Leader 4Tr</button>')+'</div>'+(!b.leader?'<div class="cost-preview">Chưa có Leader nên chưa có doanh thu. Hãy bấm Thuê Leader.</div>':'');
     container.appendChild(card);
   });
-  provincesList.forEach(prov=>{
+  var order2={ 'Bắc':0, 'Trung':1, 'Nam':2 };
+  var list2=[...provincesList].sort((a,b)=>{
+    if(order2[a.region]!==order2[b.region]) return order2[a.region]-order2[b.region];
+    return a.name.localeCompare(b.name,'vi');
+  });
+  var lastR2='';
+  list2.forEach(prov=>{
     if(gameState.branches.find(b=>b.provinceName===prov.name)) return;
+    if(prov.region!==lastR2){
+      lastR2=prov.region;
+      var h2=document.createElement('div');
+      h2.style.cssText='background:#0f172a;border:1px solid #334155;border-radius:8px;padding:6px 10px;font-weight:900;color:#fff;font-size:12px;margin-top:6px';
+      h2.innerText = lastR2==='Bắc' ? '📍 MIỀN BẮC' : lastR2==='Trung' ? '📍 MIỀN TRUNG' : '📍 MIỀN NAM';
+      container.appendChild(h2);
+    }
     let card=document.createElement('div'); card.className='control-card';
-    card.innerHTML='<div><div class="card-title">'+prov.name+'</div><div class="card-desc">'+prov.desc+' • Buff x'+prov.advX+' | Mở chi nhánh nhận 100Tr | Thuế đất/tháng: '+formatVND(prov.priceM2*80)+'</div></div><button onclick="openBranch(\''+prov.name+'\')" class="btn-open-branch">Mở chi nhánh</button>';
+    let lockedBranch = prov.region!=='Bắc' && gameState.day<30;
+    card.innerHTML='<div><div class="card-title">'+prov.name+(lockedBranch?' 🔒':'')+'</div><div class="card-desc">'+prov.desc+' • Buff x'+prov.advX+' | Mở chi nhánh nhận 100Tr | Thuế đất/tháng: '+formatVND(prov.priceM2*80)+'</div></div>'+(lockedBranch?'<button class="btn-locked" disabled>🔒 Mở ngày 30</button>':'<button onclick="openBranch(\''+prov.name+'\')" class="btn-open-branch">Mở chi nhánh</button>');
     container.appendChild(card);
   });
   document.getElementById('branchCountLabel').innerText=gameState.branches.length+' / 63';
@@ -579,12 +671,16 @@ function changeQty(id, delta){ let q=getQty(id)+delta; if(q<1) q=1; if(q>100) q=
 function setQtyInput(id, val){ let q=parseInt(val)||1; if(q<1) q=1; if(q>100) q=100; qtyMap[id]=q; updateCostPreview(id); }
 function updateCostPreview(id){ let p=gameState.products.find(x=>x.id===id); if(!p) return; let q=getQty(id); let el=document.getElementById('cost-preview-'+id); if(!el) return; let costLe=p.cost*q; let costSi=Math.floor(p.cost*0.9)*10; el.innerHTML='Nhập <b>'+q+'</b> cái = <b>'+formatVND(costLe)+'</b> | Sỉ 10 = <b>'+formatVND(costSi)+'</b> (giảm 10%) - Tiền của bạn: <b>'+formatVND(gameState.cash)+'</b>'; }
 function importProduct(id, quantity){
-  let p=gameState.products.find(x=>x.id===id); let total=p.cost*quantity;
+  let p=gameState.products.find(x=>x.id===id);
+  if(p.segment==='Cao cấp'&&gameState.day<30){ showGameDialog('Hàng Cao cấp 🔒 Mở ngày 30, giờ chưa nhập được.','Hàng Cao cấp'); return; }
+  let total=p.cost*quantity;
   if(gameState.cash < total){ playSound('error'); showGameDialog('Không đủ tiền. Cần '+formatVND(total)+' mà bạn chỉ có '+formatVND(gameState.cash)+'.', 'Nhập hàng'); return; }
   gameState.cash-=total; gameState.totalCostSpent+=total; p.stock+=quantity; updateUI(); filterProducts(); playSound('buy'); logEvent('Nhập kho '+quantity+' '+p.name+' ('+formatVND(total)+')');
 }
 function importWholesale(id){
-  let p=gameState.products.find(x=>x.id===id); let per=Math.floor(p.cost*0.9); let total=per*10;
+  let p=gameState.products.find(x=>x.id===id);
+  if(p.segment==='Cao cấp'&&gameState.day<30){ showGameDialog('Hàng Cao cấp 🔒 Mở ngày 30, giờ chưa nhập được.','Hàng Cao cấp'); return; }
+  let per=Math.floor(p.cost*0.9); let total=per*10;
   if(gameState.cash < total){ playSound('error'); showGameDialog('Nhập sỉ cần '+formatVND(total)+', bạn chỉ có '+formatVND(gameState.cash)+'.', 'Nhập sỉ'); return; }
   showConfirmDialog('Nhập SỈ 10 cái '+p.name+'?\nGiá sỉ: '+formatVND(per)+'/cái (giảm 10%)\nTổng: '+formatVND(total), 'Nhập sỉ', ()=>{
     gameState.cash-=total; gameState.totalCostSpent+=total; p.stock+=10; updateUI(); filterProducts(); playSound('buy'); logEvent('Nhập SỈ 10 '+p.name+' - Tiết kiệm '+formatVND(p.cost*10-total));
@@ -613,8 +709,6 @@ function hireStaffMember(key){
   if(!gameState.staffMembers) gameState.staffMembers=[];
   let daCo=gameState.staffMembers.filter(x=>x.roleKey===key).length;
   if(daCo>=2){ showGameDialog('Vị trí '+st.name+' đã đủ 2 người. Cho 1 người nghỉ thì mới thuê lại được.', 'Đã đủ người'); return; }
-  let maxTong = gameState.tier==='supermarket'?20:10;
-  if(gameState.staffMembers.length>=maxTong){ showGameDialog('Cửa hàng đã đủ '+maxTong+' người, quá tải rồi! Cho 1 người nghỉ thì mới thuê lại được.', 'Quá tải'); return; }
   let fee=st.salary*1.5;
   if(gameState.cash < fee){ playSound('error'); showGameDialog('Không đủ tiền tuyển ('+formatVND(fee)+').', 'Tuyển nhân sự'); return; }
   let tenNam=['Quốc Bảo','Đức Anh','Hoàng Nam','Tuấn Kiệt','Gia Huy','Minh Quân','Hữu Phúc'];
@@ -652,7 +746,7 @@ function restStaffMember(id){
 function renderStaffTab(){
   const container=document.getElementById('staffListContainer'); if(!container) return;
   container.innerHTML='';
-  let badge=document.getElementById('staffTierBadge'); if(badge) badge.innerText = gameState.tier==='store' ? 'Cửa hàng: Tối đa 10 người - Mỗi vị trí 2 người' : 'Siêu thị: Tối đa 20 người - Mỗi vị trí 2 người';
+  let badge=document.getElementById('staffTierBadge'); if(badge) badge.innerText = gameState.tier==='store' ? 'Cửa hàng: Mỗi vị trí 2 người - Không giới hạn tổng' : 'Siêu thị: Mỗi vị trí 2 người - Không giới hạn tổng';
   let hint=document.getElementById('staffLockHint'); if(hint) hint.style.display = gameState.tier==='store' ? 'block' : 'none';
   gameState.staff.forEach(st=>{
     let locked = st.tier==='supermarket' && gameState.tier!=='supermarket';
@@ -756,22 +850,42 @@ function takeLoan(id){
   gameState.cash+=loan.amount; gameState.loansActive.push(loan); updateUI(); playSound('cash'); logEvent('Giải ngân '+loan.name+': +'+formatVND(loan.amount));
 }
 function payRentAndTaxes(){
+  if(gameState.lastTaxPaidDay===gameState.day){ showGameDialog('Hôm nay (Ngày '+gameState.day+') đã đóng thuế rồi, mai mới đóng tiếp được.', 'Đã đóng thuế'); return; }
+  if(!gameState.selectedProvince){ showGameDialog('Chưa chọn địa điểm nên chưa tính được thuế. Vào Khởi Nghiệp chọn tỉnh trước đã.', 'Chưa chọn địa điểm'); return; }
   let rent=gameState.storeAreaM2*gameState.selectedProvince.priceM2; let branchRent=gameState.branches.reduce((s,b)=>s+b.priceM2*80,0); let tax=5000000; let total=rent+branchRent+tax;
   if(gameState.cash < total){ playSound('error'); showGameDialog('Không đủ tiền đóng ('+formatVND(total)+').', 'Thuế & Phí'); return; }
-  gameState.cash-=total; gameState.totalTaxPaid+=total; updateUI(); playSound('cash'); logEvent('Đóng thuê + thuế: '+formatVND(total)+' (CN: '+formatVND(branchRent)+')'); showGameDialog('Đã đóng '+formatVND(total)+'.', 'Thuế & Phí');
+  gameState.cash-=total; gameState.totalTaxPaid+=total; gameState.lastTaxPaidDay=gameState.day; updateUI(); playSound('cash'); logEvent('Đóng thuê + thuế: '+formatVND(total)+' (CN: '+formatVND(branchRent)+')'); showGameDialog('Đã đóng '+formatVND(total)+'. Mai mới đóng tiếp được.', 'Thuế & Phí');
 }
 function renderProvincesScrollList(){
   const container=document.getElementById('provincesScrollList'); if(!container) return;
   container.innerHTML='';
-  provincesList.forEach(prov=>{
-    let isSel=prov.name===gameState.selectedProvince.name;
+  var order={ 'Bắc':0, 'Trung':1, 'Nam':2 };
+  var list=[...provincesList].sort((a,b)=>{
+    if(order[a.region]!==order[b.region]) return order[a.region]-order[b.region];
+    return a.name.localeCompare(b.name,'vi');
+  });
+  var lastRegion='';
+  list.forEach(prov=>{
+    if(prov.region!==lastRegion){
+      lastRegion=prov.region;
+      var head=document.createElement('div');
+      head.style.cssText='background:#0f172a;border:1px solid #334155;border-radius:8px;padding:6px 10px;font-weight:900;color:#fff;font-size:12px;margin-top:6px';
+      head.innerText = lastRegion==='Bắc' ? '📍 MIỀN BẮC' : lastRegion==='Trung' ? '📍 MIỀN TRUNG' : '📍 MIỀN NAM';
+      container.appendChild(head);
+    }
+    let isSel=gameState.selectedProvince && prov.name===gameState.selectedProvince.name;
     let card=document.createElement('div'); card.className='control-card';
-    card.innerHTML='<div><div class="card-title">'+prov.name+' '+(isSel?'(Đang hoạt động)':'')+'</div><div class="card-desc">'+prov.desc+' • Buff x'+prov.advX+' | Thuê: '+prov.priceM2.toLocaleString('vi-VN')+'đ/m²</div></div><button onclick="selectProvince(\''+prov.name+'\')" class="'+(isSel?'btn-emerald':'btn-cyan')+'">'+(isSel?'Hiện tại':'Chọn')+'</button>';
+    var locked = prov.region!=='Bắc' && gameState.day<30;
+    card.innerHTML='<div><div class="card-title">'+prov.name+' '+(isSel?'(Đang hoạt động)':'')+(locked?' 🔒':'')+'</div><div class="card-desc">'+prov.desc+' • Buff x'+prov.advX+' | Thuê: '+prov.priceM2.toLocaleString('vi-VN')+'đ/m²</div></div>'+(locked?'<button class="btn-locked" disabled>🔒 Mở ngày 30</button>':'<button onclick="selectProvince(\''+prov.name+'\')" class="'+(isSel?'btn-emerald':'btn-cyan')+'">'+(isSel?'Hiện tại':'Chọn')+'</button>');
     container.appendChild(card);
   });
 }
-function selectProvince(name){ gameState.selectedProvince=provincesList.find(p=>p.name===name); renderProvincesScrollList(); updateUI(); playSound('upgrade'); logEvent('Chuyển siêu thị sang '+name+' (Buff x'+gameState.selectedProvince.advX+')'); }
-
+function selectProvince(name){
+  var p=provincesList.find(x=>x.name===name);
+  if(p.region!=='Bắc' && gameState.day<30){ showGameDialog('Tỉnh '+p.name+' ('+p.region+') chưa mở. 🔒 Mở ngày 30. Giờ chỉ chọn được tỉnh miền Bắc thôi.', 'Chưa mở'); return; }
+    gameState.selectedProvince=p;
+  renderProvincesScrollList(); updateUI(); playSound('upgrade'); logEvent('Chuyển siêu thị sang '+name+' (Buff x'+gameState.selectedProvince.advX+')');
+}
 function renderUpgrades(){
   const container=document.getElementById('upgradesList'); if(!container) return;
   container.innerHTML='';
@@ -833,17 +947,27 @@ function renderBrandChips(){
     c.appendChild(b);
   });
 }
-function renderSegmentChips(){ const c=document.getElementById('segmentChipsContainer'); if(!c) return; c.innerHTML=''; ['all','Cao cấp','Trung cấp','Phổ thông'].forEach(seg=>{ let b=document.createElement('button'); b.className='filter-chip '+(gameState.selectedSegment===seg?'active-chip':''); b.innerText=seg==='all'?'Tất cả Phân khúc':seg; b.onclick=()=>{gameState.selectedSegment=seg; renderSegmentChips(); filterProducts();}; c.appendChild(b); }); }
-
+function renderSegmentChips(){ const c=document.getElementById('segmentChipsContainer'); if(!c) return; c.innerHTML=''; ['all','Cao cấp','Trung cấp','Phổ thông'].forEach(seg=>{ let b=document.createElement('button'); let lockedSeg=seg==='Cao cấp'&&gameState.day<30; b.className='filter-chip '+(gameState.selectedSegment===seg?'active-chip':''); b.innerText=seg==='all'?'Tất cả Phân khúc':(lockedSeg?'🔒 Cao cấp - Mở ngày 30':seg); b.disabled=lockedSeg; b.onclick=()=>{gameState.selectedSegment=seg; renderSegmentChips(); filterProducts();}; c.appendChild(b); }); }
+function normVN(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d'); }
+function setProductSearch(v){ gameState.productSearch=v||''; filterProducts(); }
+function clearProductSearch(){ gameState.productSearch=''; var inp=document.getElementById('productSearchInput'); if(inp) inp.value=''; filterProducts(); }
 function filterProducts(){
   const container=document.getElementById('productList'); if(!container) return; container.innerHTML='';
-  let filtered=gameState.products.filter(p=>{
+    let filtered=gameState.products.filter(p=>{
     if(gameState.selectedCategory!=='all' && p.category!==gameState.selectedCategory) return false;
     if(gameState.selectedBrand!=='all' && p.brand!==gameState.selectedBrand) return false;
     if(gameState.selectedSegment!=='all' && p.segment!==gameState.selectedSegment) return false;
+    if(gameState.productSearch){
+      var kws=normVN(gameState.productSearch).split(/[^a-z0-9]+/).filter(function(w){ return w.length>0; });
+      var hay=normVN(p.name+' '+p.brand+' '+p.category);
+      var ok=kws.every(function(w){ return hay.indexOf(w)!==-1; });
+      if(!ok) return false;
+    }
     return true;
   });
-  filtered.forEach(p=>{
+    filtered.forEach(p=>{
+    let lockedHigh=p.segment==='Cao cấp'&&gameState.day<30;
+    if(lockedHigh){ let lc=document.createElement('div'); lc.className='control-card'; lc.style.flexDirection='column'; lc.style.alignItems='stretch'; lc.style.opacity='0.7'; lc.innerHTML='<div><div class="card-title">'+p.brand+' - '+p.name+' 🔒</div><div class="card-desc">Sỉ: '+formatVND(p.cost)+' | Giá bán: '+formatVND(p.price)+' | Cao cấp - Mở ngày 30</div></div><button class="btn-locked" disabled style="margin-top:8px">🔒 Mở ngày 30</button>'; container.appendChild(lc); return; }
     let q=getQty(p.id); let costLe=p.cost*q; let costSi=Math.floor(p.cost*0.9)*10;
     let card=document.createElement('div'); card.className='control-card'; card.style.flexDirection='column'; card.style.alignItems='stretch';
     card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><div><div class="card-title">'+p.brand+' - '+p.name+'</div><div class="card-desc">Sỉ: '+formatVND(p.cost)+' | Tồn: '+p.stock+' | Giá bán: '+formatVND(p.price)+' | '+p.category+'</div></div></div><div class="qty-control"><button class="qty-btn" onclick="changeQty(\''+p.id+'\',-1)">-</button><input id="qty-input-'+p.id+'" class="qty-input" type="number" value="'+q+'" min="1" max="100" onchange="setQtyInput(\''+p.id+'\',this.value)"><button class="qty-btn" onclick="changeQty(\''+p.id+'\',1)">+</button><span style="font-size:10px;color:#fde68a">cái</span></div><div id="cost-preview-'+p.id+'" class="cost-preview">Nhập <b>'+q+'</b> cái = <b>'+formatVND(costLe)+'</b> | Sỉ 10 = <b>'+formatVND(costSi)+'</b> (giảm 10%) - Tiền: <b>'+formatVND(gameState.cash)+'</b></div><div class="import-actions"><button onclick="importWholesale(\''+p.id+'\')" class="btn-import-wholesale">Nhập SỈ 10 (-10%)</button><button onclick="importCustom(\''+p.id+'\')" class="btn-import-custom">Nhập '+q+' cái</button></div>';
@@ -851,9 +975,12 @@ function filterProducts(){
   });
 }
 function switchTab(tabName, evt){
-  document.querySelectorAll('#tab-inventory, #tab-staff, #tab-attendance, #tab-startup, #tab-bank, #tab-upgrades, #tab-branch, #tab-finance, #tab-summary, #tab-online',).forEach(el=>el.classList.add('hidden'));
+  document.querySelectorAll('#tab-inventory, #tab-staff, #tab-attendance, #tab-startup, #tab-bank, #tab-upgrades, #tab-branch, #tab-finance, #tab-summary, #tab-online, #tab-repair, #tab-warehouse').forEach(t=>t.classList.add('hidden'));
   document.querySelectorAll('.feature-icon-btn').forEach(b=>b.classList.remove('active-tab-feat'));
   const t=document.getElementById('tab-'+tabName); if(t) t.classList.remove('hidden');
+  if(tabName==='warehouse') renderWarehouse();
+  if(tabName==='repair') renderRepair();
+  if(tabName==='online') renderOnlineOrders();
   onGuideButtonClicked(evt && evt.currentTarget ? evt.currentTarget.id : '');
   if(evt && evt.currentTarget) evt.currentTarget.classList.add('active-tab-feat');
   playSound('buy');
@@ -876,15 +1003,14 @@ if(shiftEl){
   let title=document.getElementById('brandTitle'); let badge=document.getElementById('tierBadge');
   if(gameState.tier==='supermarket'){ title.innerText='Siêu thị Thế giới công nghệ'; badge.innerText='SIÊU THỊ'; badge.className='badge-tier-market'; }
   else { title.innerText='Cửa hàng: Thế giới công nghệ'; badge.innerText='CỬA HÀNG'; badge.className='badge-tier-store'; }
-  let tierBox=document.getElementById('tierUpgradeBox'); if(tierBox) tierBox.innerText = gameState.tier==='supermarket' ? 'Cấp hiện tại: SIÊU THỊ' : 'Cấp hiện tại: CỬA HÀNG';
-  let tierDesc=document.getElementById('tierUpgradeDesc'); if(tierDesc) tierDesc.innerText = gameState.tier==='supermarket' ? 'Bạn đã lên Siêu thị rồi, giờ mở Chi nhánh để mở chuỗi toàn quốc.' : 'Lên Siêu thị cần: Ngày 15 (bạn đang '+gameState.day+'), Tiền 800Tr (bạn có '+formatVND(gameState.cash)+'), Đánh giá 4.0 (bạn đang '+gameState.rating.toFixed(1)+' sao)';
-  let specialDesc=document.getElementById('specialUpgradeDesc'); if(specialDesc) specialDesc.innerText = gameState.tier==='supermarket' ? 'Đã lên Siêu thị. Giờ mở Chi nhánh để mở chuỗi toàn quốc.' : 'Cần: Ngày 15 (bạn đang '+gameState.day+') • Tiền 800Tr (bạn có '+formatVND(gameState.cash)+') • Đánh giá 4.0 sao (bạn đang '+gameState.rating.toFixed(1)+' sao)';
+  let tierDesc=document.getElementById('tierUpgradeDesc'); if(tierDesc) tierDesc.innerText = gameState.tier==='supermarket' ? 'Bạn đã lên Siêu thị rồi, giờ mở Chi nhánh để mở chuỗi toàn quốc.' : 'Lên Siêu thị cần: Ngày 15 • Tiền 800Tr • Đánh giá 4.0';
+  let specialDesc=document.getElementById('specialUpgradeDesc'); if(specialDesc) specialDesc.innerText = gameState.tier==='supermarket' ? 'Đã lên Siêu thị. Giờ mở Chi nhánh để mở chuỗi toàn quốc.' : 'Cần: Ngày 15 • Tiền 800Tr • Đánh giá 4.0';
   let specialPanel=document.getElementById('specialSupermarketPanel'); if(specialPanel) specialPanel.style.display = gameState.tier==='supermarket' ? 'none' : 'flex';
-  document.getElementById('locationLabel').innerText='📍 '+gameState.selectedProvince.name;
-  document.getElementById('financeCurrentProvince').innerText=gameState.selectedProvince.name;
+  document.getElementById('locationLabel').innerText='📍 '+(gameState.selectedProvince ? gameState.selectedProvince.name : 'Chưa chọn tỉnh');
+  document.getElementById('financeCurrentProvince').innerText=gameState.selectedProvince ? gameState.selectedProvince.name : 'Chưa chọn - Vào Khởi Nghiệp';
   document.getElementById('storeAreaVal').innerText=gameState.storeAreaM2+' m²';
   document.getElementById('liveCashScreen').innerText=formatVND(gameState.cash);
-  let rent=gameState.storeAreaM2*gameState.selectedProvince.priceM2;
+  let rent=gameState.selectedProvince ? gameState.storeAreaM2*gameState.selectedProvince.priceM2 : 0;
   document.getElementById('rentVal').innerText=formatVND(rent);
   let branchRent=gameState.branches.reduce((s,b)=>s+b.priceM2*80,0);
   document.getElementById('branchRentVal').innerText=formatVND(branchRent);
@@ -896,7 +1022,79 @@ if(shiftEl){
   document.getElementById('sumSalaryDetail').innerText=formatVND(totalSalary);
   document.getElementById('sumTaxDetail').innerText=formatVND(gameState.totalTaxPaid);
   let netProfit=gameState.totalRevenue-(gameState.totalCostSpent+totalSalary+gameState.totalTaxPaid);
+  fillBreakdown('sum', gameState.totalRevenue, gameState.totalCostSpent, totalSalary, gameState.totalTaxPaid);
   let netEl=document.getElementById('sumNetProfitDetail'); netEl.innerText=formatVND(netProfit); netEl.className=netProfit>=0?'text-emerald-400 font-bold':'text-rose-400 font-bold';
+}
+function fillBreakdown(p, thu, nhap, luong, thue){
+  var tongChi = nhap + luong + thue;
+  var loi = thu - tongChi;
+  var mau = Math.max(thu, tongChi, 1);
+  function pct(v){ return Math.round(v / mau * 100) + '%'; }
+  function set(id, val){ var el = document.getElementById(id); if(el) el.innerText = val; }
+  function bar(id, v){ var el = document.getElementById(id); if(el) el.style.width = pct(v); }
+  set(p+'ThuHead', formatVND(thu));
+  set(p+'LoiHead', (loi>=0?'Lãi: ':'Lỗ: ') + formatVND(loi));
+  var loiEl = document.getElementById(p+'LoiHead'); if(loiEl) loiEl.className = loi>=0 ? 'text-emerald-400' : 'text-rose-400';
+  bar(p+'BarNhap', nhap); bar(p+'BarLuong', luong); bar(p+'BarThue', thue); bar(p+'BarLoi', Math.max(loi,0));
+  set(p+'PctNhap', pct(nhap)); set(p+'PctLuong', pct(luong)); set(p+'PctThue', pct(thue)); set(p+'PctLoi', pct(Math.max(loi,0)));
+  if(p==='sum'){
+    set('sumCardNhapPct', pct(nhap)); set('sumCardNhapVal', formatVND(nhap));
+    set('sumCardLuongPct', pct(luong)); set('sumCardLuongVal', formatVND(luong));
+    set('sumCardHoaVon', loi>=0 ? 'Đã hòa vốn' : 'Chưa hòa vốn');
+    set('sumCardHoaVonVal', loi>=0 ? 'Lời '+formatVND(loi) : 'Còn lỗ '+formatVND(Math.abs(loi)));
+    set('sumDayLabel', 'Ngày '+gameState.day);
+    var adv = document.getElementById('sumAdviceBox');
+    if(adv) adv.innerText = nhap > thu ? 'Đang chi nhiều tiền nhập hàng & nâng cấp! Đây là tiền đầu tư dài hạn, không phải lỗ do buôn bán ế.' : (loi>=0 ? 'Đang lời rồi, giữ nhịp này, đừng nhập dư hàng.' : 'Đang lỗ, coi lại nhập hàng và lương, đừng nhập quá nhiều 1 lúc.');
+  }
+  if(p==='modal'){
+    var adv2 = document.getElementById('modalAdviceBox');
+    if(adv2) adv2.innerText = nhap > thu ? 'Ca này chi nhiều cho nhập hàng & nâng cấp, là tiền đầu tư, không phải lỗ do ế.' : (loi>=0 ? 'Ca này lời rồi, mai bán tiếp.' : 'Ca này đang lỗ, mai nhập ít lại, bán hết hàng tồn đã.');
+  }
+}
+function changeSummaryMode(m){
+  gameState.summaryMode=m;
+  ['day','week','month'].forEach(x=>{
+    var b=document.getElementById('sumMode'+(x==='day'?'Day':x==='week'?'Week':'Month'));
+    if(b){ b.style.background = x===m ? '#22c55e' : '#1e293b'; }
+  });
+  renderSummaryView();
+}
+function changeSummaryDay(d){
+  var maxDay = gameState.dailyHistory.length ? gameState.dailyHistory[gameState.dailyHistory.length-1].day : gameState.day;
+  var nd = Math.max(1, Math.min(maxDay, (gameState.summaryDay||1)+d));
+  gameState.summaryDay=nd;
+  renderSummaryView();
+}
+function renderSummaryView(){
+  var mode = gameState.summaryMode||'day';
+  var list = gameState.dailyHistory||[];
+  var show = [];
+  if(mode==='day'){
+    show = list.filter(x=>x.day===gameState.summaryDay);
+    if(!show.length) show=[{day:gameState.summaryDay, thu:gameState.dailyRevenue, nhap:0, luong:0, thue:0, sold:gameState.dailySold||0, left:gameState.dailyLeft||0, rating:gameState.rating, event:gameState.weather==='mua'?'Trời mưa':gameState.weather==='nang'?'Trời nắng đẹp':'Trời âm u', best:gameState.summaryBest||'Chưa có'}];
+  } else if(mode==='week'){
+    show = list.slice(-7);
+  } else {
+    show = list.slice(-30);
+  }
+  if(!show.length) return;
+  var thu=0, nhap=0, luong=0, thue=0, sold=0, left=0, best=show[show.length-1].best||'Chưa có';
+  show.forEach(x=>{ thu+=x.thu||0; nhap+=x.nhap||0; luong+=x.luong||0; thue+=x.thue||0; sold+=x.sold||0; left+=x.left||0; });
+  function setTxt(id,v){ var el=document.getElementById(id); if(el) el.innerText=v; }
+  setTxt('sumNavDayLabel', mode==='day' ? 'Ngày '+gameState.summaryDay : mode==='week' ? '7 ngày gần nhất' : '30 ngày gần nhất');
+  setTxt('sumEventText', mode==='day' ? show[0].event : 'Tổng hợp '+show.length+' ngày');
+  setTxt('sumSoldVal', sold);
+  setTxt('sumLeftVal', left);
+  setTxt('sumRatingVal', (show[show.length-1].rating||5).toFixed(1)+'★');
+  setTxt('sumBestVal', best);
+  // Bảng kê bên dưới tự chạy theo chế độ đang xem
+  fillBreakdown('sum', thu, nhap, luong, thue);
+  setTxt('sumRevDetail', formatVND(thu));
+  setTxt('sumCostDetail', formatVND(nhap));
+  setTxt('sumSalaryDetail', formatVND(luong));
+  setTxt('sumTaxDetail', formatVND(thue));
+  var net = thu-(nhap+luong+thue);
+  setTxt('sumNetProfitDetail', formatVND(net));
 }
 function saveGame(){
   let cu = JSON.parse(localStorage.getItem('techWorld3Saves')||'[]');
@@ -922,18 +1120,36 @@ function resetGame(){
   });
 }
 function manualCloseShift(){
+  if(!gameState.isShopOpen){ showGameDialog('Quán đang đóng rồi, không cần đóng ca nữa.', 'Đóng ca'); return; }
+  let khachDangCho = Math.floor(Math.random()*4);
+  showConfirmDialog('Đóng cửa hôm nay?\n\nQuán nghỉ sớm và chuyển sang tổng kết. '+khachDangCho+' khách đang chờ sẽ ra về.\n\n⚠️ Đóng cửa sớm: Doanh thu chi nhánh sẽ tính theo % thời gian ca thực tế. Khách đang chờ sẽ bỏ đi, có thể bị trừ đánh giá.', 'Đóng cửa hôm nay?', ()=>{
+    doCloseShift();
+  });
+}
+function doCloseShift(){
   stopGameLoop(); gameState.isShopOpen=false; updateOpenShopButtonState();
   let totalSalary=gameState.staff.reduce((s,x)=>s+(x.count*x.salary),0);
-  let net=gameState.dailyRevenue-totalSalary;
-  document.getElementById('modalSumRevenue').innerText='+'+formatVND(gameState.dailyRevenue);
+  let thuCa=gameState.dailyRevenue;
+  let chiCa=totalSalary+gameState.totalTaxPaid;
+  let loCa=thuCa-chiCa;
+  document.getElementById('modalSumRevenue').innerText='+'+formatVND(thuCa);
   document.getElementById('modalBranchRevenue').innerText='+'+formatVND(gameState.branchDailyRevenue);
   document.getElementById('modalSumStaffSalary').innerText='-'+formatVND(totalSalary);
-  let netEl=document.getElementById('modalSumNetProfit'); netEl.innerText=formatVND(net); netEl.className=net>=0?'text-emerald-400 font-bold':'text-rose-400 font-bold';
+  document.getElementById('modalSumTaxPaid').innerText='-'+formatVND(gameState.totalTaxPaid);
+  let netEl=document.getElementById('modalSumNetProfit'); netEl.innerText=formatVND(loCa); netEl.className=loCa>=0?'text-emerald-400 font-bold':'text-rose-400 font-bold';
+  document.getElementById('nextDayLabel').innerText = gameState.day + 1;
+  fillBreakdown('modal', thuCa, gameState.totalCostSpent, totalSalary, gameState.totalTaxPaid);
+   // Lưu lịch sử ngày vừa đóng để xem lại Ngày / Tuần / Tháng
+  if(!gameState.dailyHistory) gameState.dailyHistory=[];
+  var evTxt = gameState.weather==='mua' ? 'Trời mưa' : gameState.weather==='nang' ? 'Trời nắng đẹp' : 'Trời âm u';
+  gameState.dailyHistory.push({day:gameState.day, thu:thuCa, nhap:gameState.totalCostSpent, luong:totalSalary, thue:gameState.totalTaxPaid, sold:gameState.dailySold||0, left:gameState.dailyLeft||0, rating:gameState.rating, event:evTxt, best:gameState.summaryBest||'Chưa có'});
+  gameState.summaryDay=gameState.day;
   document.getElementById('summaryModal').classList.remove('hidden');
 }
 function startNextShiftOrDay(){
   document.getElementById('summaryModal').classList.add('hidden');
   gameState.day++; gameState.dailyRevenue=0; gameState.branchDailyRevenue=0;
+  gameState.dailySold=0; gameState.dailyLeft=0; gameState.summaryBest='Chưa có';
   let weathersB22=['nang','mua','mu'];
   gameState.weather=weathersB22[Math.floor(Math.random()*weathersB22.length)];
   if(gameState.weather==='mua') logEvent('Hôm nay trời mưa, khách tới cửa hàng ít hơn, bán Online nhiều hơn.');
@@ -942,8 +1158,17 @@ function startNextShiftOrDay(){
   gameState.branches.forEach(b=>{ if(b.leaderOnLeave){ b.leaderOnLeave=false; b.leaderBackup=''; logEvent('Leader '+b.leaderName+' đã quay lại làm việc tại '+b.provinceName+'.'); } });
   gameState.attendanceIncidents=[]; gameState.attendanceResolved=[]; gameState.gameMinute=0; gameState.currentHour=8;
   document.getElementById('dayCounter').innerText='Ngày '+gameState.day;
+  let dl=document.getElementById('modalDayLabel'); if(dl) dl.innerText=gameState.day;
   if(gameState.rating < 2.5) adjustRating(0.1,'Ngày mới cố gắng cải thiện');
   updateUI(); renderBankLoans(); renderUpgrades(); renderBranches();
+}
+function openFullSummary(){
+  document.getElementById('summaryModal').classList.add('hidden');
+  // Đã đóng ca = đã xong ngày cũ, bấm Tổng kết cũng phải sang ngày mới
+  startNextShiftOrDay();
+    renderSummaryView();
+  switchTab('summary', null);
+  document.getElementById('tabBtn-summary').classList.add('active-tab-feat');
 }
   // 3 KIEU: always = Luon bat, auto = Tu dong, off = Da tat
 function getGuideMode(){ return gameState.guideMode || 'off'; }
@@ -983,7 +1208,8 @@ function showGuideStep(idx){
   el.classList.add('guide-highlight');
   el.scrollIntoView({block:'center', behavior:'smooth'});
   let tip=document.getElementById('guideTooltip');
-  if(tip) tip.classList.add('hidden');
+  document.getElementById('guideTooltipText').innerText=step.text;
+  tip.classList.remove('hidden');
 }
 function nextGuideStep(){
   let next=gameState.guideStep+1;
@@ -994,7 +1220,7 @@ function nextGuideStep(){
       gameState.guideMode='off';
       updateSettingsLabels();
     }
-    showGameDialog('Xong hướng dẫn: Nhập hàng -> Nhân viên -> Nâng cấp -> Chấm công -> Kiểm tra tồn kho -> Mở bán. Từ giờ tự chơi nhé.', 'Hoàn thành hướng dẫn');
+    showGameDialog('Xong hướng dẫn: Nhập hàng -> Nhân viên -> Bán Online -> Sửa chữa -> Chấm công -> Nâng cấp -> Mở bán -> Đóng ca -> Tổng kết là cuối cùng. Từ giờ tự chơi nhé.', 'Hoàn thành hướng dẫn');
     return;
   }
   showGuideStep(next);
@@ -1071,6 +1297,7 @@ function toggleOnlineSelling(){
   gameState.isOnline=!gameState.isOnline;
   let btn=document.getElementById('onlineBtn');
   let st=document.getElementById('onlineStatus');
+  if(!btn || !st) { renderOnlineOrders(); return; }
   if(gameState.isOnline){
     btn.innerText='🛒 Bán Online: ĐANG BẬT';
     btn.style.background='#22c55e';
@@ -1085,14 +1312,14 @@ function toggleOnlineSelling(){
   updateUI();
 }
 function createOnlineOrder(){
-  let coHang=gameState.products.filter(x=>x.stock>0);
+  let coHang=gameState.products.filter(x=>x.stock>0 && !(x.segment==='Cao cấp'&&gameState.day<30));
   if(coHang.length===0) return;
   let p=coHang[Math.floor(Math.random()*coHang.length)];
   let tenNu=['Minh Anh','Thu Hằng','Phương Linh','Khánh Vy','Lan Anh','Thảo Nguyên'];
   let tenNam=['Quốc Bảo','Đức Anh','Hoàng Nam','Gia Huy','Minh Quân','Tuấn Kiệt'];
   let laNu=Math.random()<0.5;
   let ten=(laNu?tenNu:tenNam)[Math.floor(Math.random()*6)];
-  let don={id:Date.now(), productId:p.id, productName:p.name, price:Math.round(p.price*gameState.selectedProvince.advX*0.9), customer:ten, status:'cho'};
+  let don={id:Date.now(), productId:p.id, productName:p.name, price:Math.round(p.price*(gameState.selectedProvince?gameState.selectedProvince.advX:1)*0.9), customer:ten, status:'cho'};
   gameState.onlineOrders.push(don);
   logEvent('🛒 Online: Khách '+(laNu?'chị ':'anh ')+ten+' đặt 1 '+p.name+' - Bấm Xác nhận để đóng gói!');
   renderOnlineOrders();
@@ -1148,3 +1375,119 @@ window.onload=()=>{
     }
   },120);
 };
+// ===== KHO TỔNG + QUẦY TRƯNG + SỬA CHỮA =====
+gameState.warehouseSearch = '';
+gameState.warehouseFilter = 'all';
+gameState.repairOrders = gameState.repairOrders || [];
+let repairIdCounter = 1;
+
+function setWarehouseSearch(v){ gameState.warehouseSearch = v||''; renderWarehouse(); }
+function clearWarehouseSearch(){ gameState.warehouseSearch=''; var i=document.getElementById('warehouseSearchInput'); if(i) i.value=''; renderWarehouse(); }
+function setWarehouseFilter(f){ gameState.warehouseFilter=f; renderWarehouse(); }
+
+function renderWarehouse(){
+  var box=document.getElementById('warehouseList'); if(!box) return;
+  var list=gameState.products.filter(p=>{
+    if(gameState.warehouseFilter==='het' && p.stock!==0) return false;
+    if(gameState.warehouseFilter==='saphet' && !(p.stock>0 && p.stock<3)) return false;
+    if(gameState.warehouseFilter==='tonnhieu' && p.stock<=20) return false;
+    if(gameState.warehouseFilter==='caocap' && p.segment!=='Cao cấp') return false;
+    if(gameState.warehouseSearch){
+      var k=normVN(gameState.warehouseSearch); var hay=normVN(p.name+' '+p.brand+' '+p.category);
+      if(hay.indexOf(k)===-1) return false;
+    }
+    return true;
+  });
+  var tongMay=list.reduce((s,p)=>s+p.stock,0);
+  var tongVon=gameState.products.reduce((s,p)=>s+p.stock*p.cost,0);
+  var lbl=document.getElementById('warehouseTotalLabel'); if(lbl) lbl.innerText=tongMay+' máy • Vốn ôm: '+formatVND(tongVon);
+  box.innerHTML='';
+  if(!list.length){ box.innerHTML='<div class="summary-box text-center">Không có máy nào khớp.</div>'; return; }
+  list.forEach(p=>{
+    var q=getQty(p.id);
+    var d=document.createElement('div'); d.className='control-card'; d.style.flexDirection='column'; d.style.alignItems='stretch';
+    d.innerHTML='<div><div class="card-title">'+p.brand+' - '+p.name+'</div><div class="card-desc">Tồn: <b>'+p.stock+'</b> | Vốn: '+formatVND(p.cost)+' | Bán: '+formatVND(p.price)+' | Lời 1 cái: '+formatVND(p.price-p.cost)+'</div></div>'
+    +'<div class="qty-control"><button class="qty-btn" onclick="changeQty(\''+p.id+'\',-1);renderWarehouse()">-</button><input class="qty-input" type="number" value="'+q+'" onchange="setQtyInput(\''+p.id+'\',this.value);renderWarehouse()"><button class="qty-btn" onclick="changeQty(\''+p.id+'\',1);renderWarehouse()">+</button><span style="font-size:10px;color:#fde68a">cái</span></div>'
+    +'<div class="import-actions"><button onclick="importWholesale(\''+p.id+'\');renderWarehouse()" class="btn-import-wholesale">Nhập SỈ 10 (-10%)</button><button onclick="importCustom(\''+p.id+'\');renderWarehouse();filterProducts()" class="btn-import-custom">Nhập '+q+' cái</button></div>';
+    box.appendChild(d);
+  });
+}
+
+// QUẦY CHỈ TRƯNG - không còn nút nhập
+function filterProducts(){
+  var container=document.getElementById('productList'); if(!container) return; container.innerHTML='';
+  var filtered=gameState.products.filter(p=>{
+    if(gameState.selectedCategory!=='all' && p.category!==gameState.selectedCategory) return false;
+    if(gameState.selectedBrand!=='all' && p.brand!==gameState.selectedBrand) return false;
+    if(gameState.selectedSegment!=='all' && p.segment!==gameState.selectedSegment) return false;
+    if(gameState.productSearch){
+      var kws=normVN(gameState.productSearch).split(/[^a-z0-9]+/).filter(w=>w.length>0);
+      var hay=normVN(p.name+' '+p.brand+' '+p.category);
+      if(!kws.every(w=>hay.indexOf(w)!==-1)) return false;
+    }
+    return true;
+  });
+  filtered.forEach(p=>{
+    var lockedHigh=p.segment==='Cao cấp'&&gameState.day<30;
+    var card=document.createElement('div'); card.className='control-card'; card.style.flexDirection='column'; card.style.alignItems='stretch'; card.style.cursor='pointer';
+    card.onclick=()=>showGameDialog(p.brand+' - '+p.name+'\nGiá bán: '+formatVND(p.price)+'\nTồn kho: '+p.stock+' cái\nPhân khúc: '+p.segment+'\nBấm Kho tổng để nhập thêm.', 'Chi tiết máy');
+    card.innerHTML='<div><div class="card-title">📱 '+p.brand+' - '+p.name+(lockedHigh?' 🔒':'')+'</div><div class="card-desc">Giá bán: '+formatVND(p.price)+' | Tồn trưng bày: '+p.stock+' | '+p.category+'</div></div><div style="font-size:11px;color:#94a3b8;margin-top:6px">👆 Bấm để xem chi tiết • Muốn nhập hàng vào Kho tổng</div>';
+    container.appendChild(card);
+  });
+}
+
+// SỬA CHỮA 4 BƯỚC - Khách mang máy CỦA HỌ tới, không phải máy trong kho mình
+function spawnRepairCustomer(){
+  if(!gameState.isShopOpen) return;
+  if((gameState.repairOrders||[]).length >= 3) return;
+  // Không có Kỹ thuật viên thì khách tới rồi đi, không tạo đơn
+  var coKT = (gameState.staffMembers||[]).some(x=>x.roleKey==='tech_staff');
+  if(!coKT){
+    if(Math.random()<0.3) logEvent('🚶 Khách mang máy tới sửa nhưng không có Kỹ thuật viên nên bỏ về.');
+    return;
+  }
+  // Máy khách mang tới + lỗi phải khớp loại máy, không còn chuyện sạc dự phòng vỡ màn hình
+  var pool=[
+    {ten:'iPhone 13 của khách', lois:['Vỡ màn hình','Chai pin','Hỏng loa','Sập nguồn'], gia:12000000},
+    {ten:'【entity-Samsung¦canonical_name=Samsung】 A35 của khách', lois:['Vỡ màn hình','Chai pin','Hỏng sạc','Lỗi phần mềm'], gia:8000000},
+    {ten:'Laptop 【entity-HP¦canonical_name=HP】 của khách', lois:['Sập nguồn','Hỏng bàn phím','Chạy chậm - Lỗi phần mềm','Hỏng sạc'], gia:15000000},
+    {ten:'Laptop 【entity-Dell¦canonical_name=Dell】 của khách', lois:['Sập nguồn','Hỏng quạt - Nóng máy','Hỏng màn hình','Lỗi phần mềm'], gia:16000000},
+    {ten:'iPad của khách', lois:['Vỡ màn hình','Chai pin','Hỏng loa'], gia:10000000},
+    {ten:'Tai nghe 【entity-Sony¦canonical_name=Sony】 của khách', lois:['Hỏng 1 bên tai','Hỏng pin - Sạc không vào','Hỏng bluetooth'], gia:5000000}
+  ];
+  var may = pool[Math.floor(Math.random()*pool.length)];
+  var loi = may.lois[Math.floor(Math.random()*may.lois.length)];
+  var phi = Math.round((may.gia*0.08)/1000)*1000;
+  var tenNu=['Minh Anh','Thu Hằng','Phương Linh','Khánh Vy','Lan Anh'];
+  var tenNam=['Quốc Bảo','Đức Anh','Hoàng Nam','Gia Huy','Minh Quân'];
+  var laNu=Math.random()<0.5;
+  var khach=(laNu?tenNu:tenNam)[Math.floor(Math.random()*5)];
+  var don={id:repairIdCounter++, ten:may.ten, loi:loi, phi:phi, step:0, baoHanh:Math.random()<0.2, khach:khach, nguon:'Offline - Khách tới trực tiếp'};
+  gameState.repairOrders.push(don);
+  logEvent('🔧 Khách '+(laNu?'chị ':'anh ')+khach+' mang '+don.ten+' tới sửa: '+loi+' (Phí '+formatVND(phi)+')');
+  renderRepair();
+}
+function repairNext(id){
+  var don=gameState.repairOrders.find(x=>x.id===id); if(!don) return;
+  don.step++;
+  if(don.step>=4){
+    var thu=don.baoHanh?0:don.phi;
+    gameState.cash+=thu; gameState.dailyRevenue+=thu; gameState.totalRevenue+=thu;
+    logEvent('✅ Trả máy '+don.ten+' cho khách (+'+formatVND(thu)+')');
+    addReview(5,'Sửa máy '+don.ten+' nhanh');
+    gameState.repairOrders=gameState.repairOrders.filter(x=>x.id!==id);
+  }
+  updateUI(); renderRepair();
+}
+function renderRepair(){
+  var box=document.getElementById('repairList'); if(!box) return;
+  var lbl=document.getElementById('repairCountLabel'); if(lbl) lbl.innerText=gameState.repairOrders.length+' đơn';
+  box.innerHTML='';
+  if(!gameState.repairOrders.length){ box.innerHTML='<div class="summary-box text-center">Chưa có đơn sửa nào. Bấm Nhận máy mới.</div>'; return; }
+  var steps=['1. Tiếp nhận','2. Chẩn đoán + Báo giá','3. Đang sửa ở Tầng 2','4. Trả máy'];
+  gameState.repairOrders.forEach(don=>{
+  var d=document.createElement('div'); d.className='control-card'; d.style.flexDirection='column'; d.style.alignItems='stretch';
+  d.innerHTML='<div><div class="card-title">🚶 '+(don.khach||'Khách')+' - '+don.ten+' - '+don.loi+'</div><div class="card-desc">'+(don.nguon||'Offline - Khách tới trực tiếp')+' | Phí: '+formatVND(don.phi)+' '+(don.baoHanh?'(Còn bảo hành - Miễn phí)':'')+' | Bước: '+steps[don.step]+'</div></div><button onclick="repairNext('+don.id+')" class="btn-cyan" style="margin-top:8px">'+(don.step===3?'✅ Trả máy + Nhận tiền':'Tiếp tục → '+steps[don.step+1])+'</button>';
+  box.appendChild(d);
+  });
+}
